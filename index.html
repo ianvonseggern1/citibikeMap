@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Citibike Historical Map</title>
+
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="styles.css">
+
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="http://d3js.org/d3.v4.min.js"></script>
+  </head>
+
+  <body>
+    <div id="header"><h2>Citibike Historical Availability</h2></div>
+    <div id="mapContainer">
+      <input type="text" id="datepicker" />
+          
+      <div id="options">
+        <span id="timestamp" class="optionInlineBlock"></span>
+        <span id="timeslider" class="optionInlineBlock"></span>
+        <select name="type" id="typepicker" class="optionInlineBlock">
+          <option value="bike">Bikes</option>
+          <option value="dock">Docks</option>
+        </select>
+      </div>
+
+      <div id="map"></div>
+      <div id="mapLoadingOverlay">
+        <img src="loadingTransparent.gif" id="mapLoadingImage" />
+      </div>
+    </div>  
+    
+    <script type="text/javascript" src="./main.js"></script>    
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCkY5PjJYijoiXKvnkdiE3eT2s7d6_48MQ&callback=initMap">
+    </script>
+
+  </body>
+</html>

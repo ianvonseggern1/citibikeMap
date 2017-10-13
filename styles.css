@@ -1,0 +1,107 @@
+#mapContainer {
+    height: 90%;
+    width: 90%;
+    min-width: 575px;
+    margin: auto;
+    position: relative;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+}
+
+#mapLoadingOverlay {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    height: 100%;
+    width: 100%;
+    background: rgba(25, 25, 25, .5);
+    display: none;
+}
+
+#mapLoadingImage {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-top: -50px;
+    margin-left: -50px;
+    height: 100px;
+    width: 100px;
+}
+
+/* Need to set line-height on this outer div */
+#options {
+    padding: 15px;
+    line-height: 50px;
+    position: absolute;
+    z-index: 2;
+    top: 85%;
+    width: 100%;
+    pointer-events: none;
+}
+/* And set it back to normal here to vertically center */
+.optionInlineBlock {
+    line-height: normal;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#datepicker {
+    padding: 2px;
+    margin: 10px;
+    font-size: large;
+    position: absolute;
+    width: 100px;
+    z-index: 3;
+    text-align: center;
+}
+
+#ui-datepicker-div {
+    z-index: 3 !important; /* The slider has z-index of 2, this needs to be on top */
+}
+
+#timeslider {
+    margin: 10px 0px;
+    width: 50%;
+    pointer-events: all;
+}
+
+#timestamp {
+    font-size: large;
+    width: 90px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+}
+
+#typepicker {
+    margin-left: 15px;
+    font-size: large;
+    width: 100px;
+    height: 40px;
+    pointer-events: all;
+}
+
+#graphcontainer {
+    width: 290px;
+    height: 140px;
+}
+
+#graphloading {
+    height: 140px;
+    width: 140px;
+    margin-left: 85px;
+    display: none;
+}
+
+#header {
+    text-align: center;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
