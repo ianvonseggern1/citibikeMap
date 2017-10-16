@@ -95,7 +95,10 @@ function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
         zoom: 12,
         center: {lat: 40.7128, lng: -74.0059},
-        mapTypeId: 'roadmap'
+        mapTypeId: 'roadmap',
+	mapTypeControl: false,
+	fullscreenControl: false,
+	streetViewControl: false
     });
     infowindow = new google.maps.InfoWindow({
 	content: "<div id='graphcontainer'>" +
@@ -152,9 +155,9 @@ function constructMarkers() {
         }
 
 	circles_by_station_id[station_id] = {
-	    'green': constructMapMarker('#00FF00', lat, lon, station_id),
-	    'yellow': constructMapMarker('#FFFF00', lat, lon, station_id),
-	    'red': constructMapMarker('#FF0000', lat, lon, station_id)
+	    'green': constructMapMarker('#4cd964', lat, lon, station_id),
+	    'yellow': constructMapMarker('#FFCC00', lat, lon, station_id),
+	    'red': constructMapMarker('#FF2D55', lat, lon, station_id)
 	};
     }
 }
@@ -206,7 +209,7 @@ function constructMapMarker(color, lat, lon, station_id) {
     var circle = new google.maps.Circle({
 	strokeColor: color,
         strokeOpacity: 1,
-        strokeWeight: 4,
+        strokeWeight: 5,
         fillColor: color,
         fillOpacity: 1,
         center: {lat: lat, lng: lon},

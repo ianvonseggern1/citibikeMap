@@ -1,6 +1,6 @@
 #mapContainer {
-    height: 90%;
-    width: 90%;
+    height: 100%;
+    width: 100%;
     min-width: 575px;
     margin: auto;
     position: relative;
@@ -37,7 +37,7 @@
     line-height: 50px;
     position: absolute;
     z-index: 2;
-    top: 85%;
+    bottom: 15px;
     width: 100%;
     pointer-events: none;
 }
@@ -49,13 +49,16 @@
 }
 
 #datepicker {
-    padding: 2px;
-    margin: 10px;
+    padding: 5px;
+    margin: 15px;
     font-size: large;
     position: absolute;
     width: 100px;
     z-index: 3;
     text-align: center;
+    border-color: black;
+    border-width: 1px;
+    border-radius: 6px;
 }
 
 #ui-datepicker-div {
@@ -66,6 +69,7 @@
     margin-left: 50px;
     width: 50%;
     pointer-events: all;
+    border-color: black;
 }
 
 #timeslider .ui-slider-handle {
@@ -74,6 +78,8 @@
     border-radius: 6px;
     margin-left: -45px;
     top: -9px;
+    border-color: black;
+    font-size: large;
 }
 
 #timeslider .ui-slider-handle.ui-state-active {
@@ -91,9 +97,10 @@
 #typepicker {
     margin-left: 50px;
     font-size: large;
-    width: 100px;
-    height: 40px;
+    width: 90px;
+    height: 30px;
     pointer-events: all;
+    border-color: black;
 }
 
 #graphcontainer {
@@ -110,6 +117,12 @@
 
 #header {
     text-align: center;
+    font-family: roboto;
+    text-shadow: -1px 0 white, 0 1px white, 1px 0 white, 0 -1px white;
+    position: absolute;
+    top: 0px;
+    z-index: 3;
+    right: 15px;
 }
 
 html, body {
