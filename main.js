@@ -34,7 +34,8 @@ function getValuesFromQueryParameters() {
     let queryParameters = new URLSearchParams(window.location.search);
 
     if (queryParameters.has('date')) {
-	date = new Date(queryParameters.get('date'));
+	let dateParts = queryParameters.get('date').split('-');
+	date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
     } else {
 	// Default to yesterday
 	date = new Date();
@@ -61,7 +62,9 @@ function setupPickers() {
     });
 
     // Jquery date picker. Selecting a new day reloads the page
-    $( "#datepicker" ).datepicker({dateFormat: 'mm/dd/yy', minDate: new Date(2017, 8, 23)})
+    $( "#datepicker" ).datepicker({dateFormat: 'mm/dd/yy',
+				   minDate: new Date(2017, 8, 23),
+				   maxDate: -1})
 	              .datepicker("setDate", date);
     $( "#datepicker").on("change", (event) => {
 	let selectedDate = $( "#datepicker" ).datepicker("getDate");

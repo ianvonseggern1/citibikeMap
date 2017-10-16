@@ -147,6 +147,7 @@
     top: 0px;
     z-index: 3;
     right: 15px;
+    pointer-events: none;
 }
 
 html, body {
