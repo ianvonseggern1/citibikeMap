@@ -7,6 +7,23 @@ var minutes_past_midnight = 600;
 var selected_station = null;
 var date;
 
+function isWeekday(date) {
+    let day = date.getDay();
+    return (day > 0 && day < 6); 
+}
+
+function getPriorWeekdays(currentDate, number) {
+    var rtn = [];
+    var date = new Date(currentDate);
+    while (rtn.length < number) {
+	date.setDate(date.getDate - 1);
+	if (isWeekday(date)) {
+	    rtn.push(new Date(date));
+	}
+    }
+    return rtn;
+}
+
 function dateToString(date, seperator) {
     return date.getFullYear() + seperator +
 	   String(date.getMonth() + 1) + seperator + // Date's month is 0 indexed
@@ -70,6 +87,8 @@ function setupPickers() {
     $( "#timeslider" ).on("slide", (_, ui) => {
 	refreshTimestamp(ui.value);
     });
+
+    $( "#timeslider .ui-slider-handle" ).append("<span id='slideTimestamp'></span>")
 }
 
 function initMap() {
@@ -115,8 +134,8 @@ function refreshTimestamp(new_time) {
     if (minutes_string.length == 1) {
         minutes_string = "0" + minutes_string;
     }
-    $( "#timestamp" ).empty();
-    $( "#timestamp" ).append(String(hours) + ":" + minutes_string + " " + am_pm); 
+    $( "#slideTimestamp" ).empty();
+    $( "#slideTimestamp" ).append(String(hours) + ":" + minutes_string + " " + am_pm); 
 }
 
 

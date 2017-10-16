@@ -63,21 +63,33 @@
 }
 
 #timeslider {
-    margin: 10px 0px;
+    margin-left: 50px;
     width: 50%;
     pointer-events: all;
 }
 
-#timestamp {
-    font-size: large;
+#timeslider .ui-slider-handle {
     width: 90px;
+    height: 30px;
+    border-radius: 6px;
+    margin-left: -45px;
+    top: -9px;
+}
+
+#timeslider .ui-slider-handle.ui-state-active {
+    background-color: #ededed;
+}
+
+#slideTimestamp {
+    color: black;
+    width: 100%;
     text-align: center;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 4px;
+    display: inline-block;
+    padding-top: 5px;
 }
 
 #typepicker {
-    margin-left: 15px;
+    margin-left: 50px;
     font-size: large;
     width: 100px;
     height: 40px;
