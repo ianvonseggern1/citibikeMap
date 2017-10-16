@@ -1,3 +1,27 @@
+#explanationModal {
+    position: absolute;
+    z-index: 4;
+    display: none;
+    top: 75px;
+    border-radius: 25px;
+    background-color: white;
+    margin: auto;
+    width: 100%;
+    text-align: center;
+    font-family: roboto;
+}
+
+#infoicon {
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    z-index: 3;
+    left: 135px;
+    top: 15px;
+    background-color: white;
+    border-radius: 15px;
+}
+
 #mapContainer {
     height: 100%;
     width: 100%;

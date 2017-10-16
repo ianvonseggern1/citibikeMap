@@ -90,6 +90,8 @@ function setupPickers() {
     });
 
     $( "#timeslider .ui-slider-handle" ).append("<span id='slideTimestamp'></span>")
+
+    $( "#infoicon" ).on("click", () => { $( "#explanationModal" ).toggle(); });
 }
 
 function initMap() {
