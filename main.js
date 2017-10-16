@@ -61,7 +61,8 @@ function setupPickers() {
     });
 
     // Jquery date picker. Selecting a new day reloads the page
-    $( "#datepicker" ).datepicker({dateFormat: 'mm/dd/yy'}).datepicker("setDate", date);
+    $( "#datepicker" ).datepicker({dateFormat: 'mm/dd/yy', minDate: new Date(2017, 8, 23)})
+	              .datepicker("setDate", date);
     $( "#datepicker").on("change", (event) => {
 	let selectedDate = $( "#datepicker" ).datepicker("getDate");
 	var newUrl = "http://ianv.me/citibikeDayMap/index.html";
