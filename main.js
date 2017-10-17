@@ -16,7 +16,7 @@ function getPriorWeekdays(currentDate, number) {
     var rtn = [];
     var date = new Date(currentDate);
     while (rtn.length < number) {
-	date.setDate(date.getDate - 1);
+	date.setDate(date.getDate() - 1);
 	if (isWeekday(date)) {
 	    rtn.push(new Date(date));
 	}
@@ -107,9 +107,13 @@ function initMap() {
 	streetViewControl: false,
 	keyboardShortcuts: false
     });
+    let showComparisonLink = isWeekday(date)
+	? "<div id='overlayPreviousDaysLink'><a href='#' onclick='overlayPreviousDaysOnGraph();'>Compare with last 5 weekdays</a></div>"
+	: "";
     infowindow = new google.maps.InfoWindow({
 	content: "<div id='graphcontainer'>" +
 	             "<img src='loading.gif' id='graphloading'></img>" +
+	             showComparisonLink +
                      "<div id='graph'></div>" +
 	         "</div>"
     });
@@ -212,7 +216,7 @@ function getMarkerColor(station_data) {
     return color;
 }
 
-function constructMapMarker(color, lat, lon, station_id) {
+function constructMapMarker(color, lat, lon, stationId) {
     var circle = new google.maps.Circle({
 	strokeColor: color,
         strokeOpacity: 1,
@@ -224,9 +228,9 @@ function constructMapMarker(color, lat, lon, station_id) {
     });
 
     // On click we show a graph of bikes at that station for the hour before and after the current time
-    circle.addListener('click', function(station_id) {
+    circle.addListener('click', function(stationId) {
 	return function(event) {
-	    selected_station = station_id;
+	    selected_station = stationId;
 	    
 	    infowindow.setPosition(event.latLng);
 	    infowindow.open(map);
@@ -236,32 +240,13 @@ function constructMapMarker(color, lat, lon, station_id) {
 	    $( "#graph" ).hide();
 	    $( "#graphloading" ).show();
 
-	    var ajax_url = "../citibike.json";
-	    ajax_url += "?date=" + dateToString(date, '-');
-	    ajax_url += "&start_time=" + String(minutes_past_midnight - 60);
-	    ajax_url += "&end_time=" + String(minutes_past_midnight + 60);
-	    ajax_url += "&step=6";
-	    ajax_url += "&station=" + station_id;
-
-	    $.ajax({ url: ajax_url, success: function(station_id) {
-		return function(result) {
-		    // If the user has selected a new marker throw this result away
-		    if (station_id != selected_station) {
-			return;
-		    }
-
-		    var key_for_type = (type == 'dock') ? 'num_docks_available' : 'num_bikes_available';
-		    var data_array = [];
-		    for (let time in result) {
-			data_array.push({"time": convertMinutesAfterMidnightToDate(time),
-					 "available": result[time][key_for_type]})
-		    }
-		    data_array.sort((x, y) => { return (x.time > y.time) ? 1 : -1; }); // accending time
-		    displayLineGraphFromJson(data_array);
-		};
-	    }(station_id)});
+	    performAjaxCallForGraphData(stationId, dateToString(date, '-'), (ajax_data) => {
+		let d3_data = convertJsonToD3Format(ajax_data);
+		constructGraphAndAxis(d3_data);
+	        plotLineOnGraph(d3_data, 'blue');
+	    });
 	};
-    }(station_id)); // currying station_id
+    }(stationId)); // currying station_id
 
     return circle;
 }
@@ -273,61 +258,126 @@ function convertMinutesAfterMidnightToDate(minutes) {
     return dateTime;
 }
 
-function displayLineGraphFromJson(data) {   
-    let width = 250;
-    let height = 100;
-    let padding = 20;
-    
-    // Set the ranges
+function performAjaxCallForGraphData(stationId, dateString, callback) {
+    var ajax_url = "../citibike.json";
+    ajax_url += "?date=" + dateString;
+    ajax_url += "&start_time=" + String(minutes_past_midnight - 60);
+    ajax_url += "&end_time=" + String(minutes_past_midnight + 60);
+    ajax_url += "&step=6";
+    ajax_url += "&station=" + stationId;
+
+    $.ajax({ url: ajax_url, success: function(stationId) {
+	return function(result) {
+	    // If the user has selected a new marker throw this result away
+	    if (stationId != selected_station) {
+		return;
+	    }
+	    
+	    callback(result);
+	};
+    }(stationId)});
+}
+
+// The citibike data is an object mapping times to station info. This function converts
+// that into a sorted array of objects with a 'time' and 'available' key that we can use
+// with d3 to plot this data.
+function convertJsonToD3Format(json_data) {
+    var key_for_type = (type == 'dock') ? 'num_docks_available' : 'num_bikes_available';
+
+    var d3_data = [];
+    for (let time in json_data) {
+	d3_data.push({"time": convertMinutesAfterMidnightToDate(time),
+		      "available": json_data[time][key_for_type]})
+    }
+    d3_data.sort((x, y) => { return (x.time > y.time) ? 1 : -1; }); // accending time
+    return d3_data;
+}
+
+let GRAPH_WIDTH = 250;
+let GRAPH_HEIGHT = 100;
+let GRAPH_PADDING = 20;
+
+// Returns transform fuctions that can be used to
+// convert data to graphable locations. Used both for constructing appropriate
+// axis and for plotting lines
+
+function getXTransformForD3() {
     var startTime = convertMinutesAfterMidnightToDate(minutes_past_midnight - 60);
     var endTime = convertMinutesAfterMidnightToDate(minutes_past_midnight + 60);
-    var x = d3.scaleTime().range([0, width]).domain([startTime, endTime]);
-    var y = d3.scaleLinear().range([height, 0])
+    return d3.scaleTime().range([0, GRAPH_WIDTH]).domain([startTime, endTime]);
+}
+
+function getYTransformForD3(data) {
+    return d3.scaleLinear().range([GRAPH_HEIGHT, 0])
 	.domain([0, Math.max(d3.max(data, (d) => { return d.available; }), 5)]);
+}
+
+// Constructs the graph and axis for it
+function constructGraphAndAxis(data) {
+    var x = getXTransformForD3();
+    var y = getYTransformForD3(data);
     
     // Define the axes
     var formatyAxis = d3.format('.0f');
     var xAxis = d3.axisBottom(x).ticks(5);
     var yAxis = d3.axisLeft(y).tickFormat(formatyAxis).ticks(5);
 
-    // Define the line
-    var valueline = d3.line()
-        .x(function(d) { return x(d.time); })
-	.y(function(d) { return y(d.available); });
-
     // Clear any existing graph
     $( "#graph" ).empty();
 
-    
     // Adds the svg canvas
     $( "#graphloading" ).hide();
     $( "#graph" ).show();
     var svg = d3.select("#graph")
         .append("svg")
-          .attr("width", width + 2 * padding)
-          .attr("height", height + 2 * padding)
+          .attr("width", GRAPH_WIDTH + 2 * GRAPH_PADDING)
+          .attr("height", GRAPH_HEIGHT + 2 * GRAPH_PADDING)
 	.append("g")
           .attr("transform",
-	        "translate(" + padding + "," + padding + ")");;
-
-    // Add the valueline path.
-    svg.append("path")
-        .data([data])
-        .attr("class", "line")
-        .attr("stroke", "blue")
-        .attr("fill", "none")
-        .attr("d", valueline(data));
-
+	        "translate(" + GRAPH_PADDING + "," + GRAPH_PADDING + ")");
+    
     // Add the X Axis
     svg.append("g")
         .attr("class", "x axis")
-        .attr("transform", "translate(0," + height + ")")
+        .attr("transform", "translate(0," + GRAPH_HEIGHT + ")")
         .call(xAxis);
 
     // Add the Y Axis
     svg.append("g")
         .attr("class", "y axis")
         .call(yAxis);
+}
+
+// Plots a line on an existing graph
+function plotLineOnGraph(data, color) {
+    var x = getXTransformForD3();
+    var y = getYTransformForD3(data);    
+
+    // Define the line
+    var valueline = d3.line()
+        .x(function(d) { return x(d.time); })
+	.y(function(d) { return y(d.available); });
+
+    
+    // Add the valueline path.
+    var svg = d3.select("#graph svg g");    
+    svg.append("path")
+        .data([data])
+        .attr("class", "line")
+        .attr("stroke", color)
+        .attr("fill", "none")
+        .attr("d", valueline(data));
+}
+
+function overlayPreviousDaysOnGraph() {
+    let date_string = getPriorWeekdays(date, 5).map((day) => {return dateToString(day, '-'); }).join(',');
+    performAjaxCallForGraphData(selected_station, date_string, (all_data) => {
+	for (var index in all_data) {
+	    let day_data = all_data[index];
+	    let d3_data = convertJsonToD3Format(day_data);
+	    plotLineOnGraph(d3_data, 'black');
+	}
+    });
 }
 
 // Initialize

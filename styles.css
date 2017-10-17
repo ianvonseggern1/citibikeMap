@@ -128,14 +128,18 @@
 
 #graphcontainer {
     width: 290px;
-    height: 140px;
+    height: 160px;
 }
 
 #graphloading {
-    height: 140px;
-    width: 140px;
-    margin-left: 85px;
+    height: 160px;
+    width: 160px;
+    margin-left: 75px;
     display: none;
+}
+
+#overlayPreviousDaysLink {
+    text-align: center;
 }
 
 #header {
