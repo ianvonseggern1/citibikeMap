@@ -104,7 +104,8 @@ function initMap() {
         mapTypeId: 'roadmap',
 	mapTypeControl: false,
 	fullscreenControl: false,
-	streetViewControl: false
+	streetViewControl: false,
+	keyboardShortcuts: false
     });
     infowindow = new google.maps.InfoWindow({
 	content: "<div id='graphcontainer'>" +

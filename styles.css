@@ -57,11 +57,10 @@
 
 /* Need to set line-height on this outer div */
 #options {
-    padding: 15px;
     line-height: 50px;
     position: absolute;
     z-index: 2;
-    bottom: 15px;
+    bottom: 30px;
     width: 100%;
     pointer-events: none;
 }
