@@ -97,6 +97,19 @@ function setupPickers() {
     $( "#infoicon" ).on("click", () => { $( "#explanationModal" ).toggle(); });
 }
 
+// This adds a button to show the last five weekdays on the infowindow detail graph
+// We only offer a comparison if it's a weekday
+function showComparisonLinkIfNecessary() {
+    if (!isWeekday(date)) {
+	return;
+    }
+
+    $( "#overlayPreviousDaysLink" ).empty();
+    $( "#overlayPreviousDaysLink" ).append(
+	"<a href='#' onclick='overlayPreviousDaysOnGraph();'>Compare with last 5 weekdays</a>"
+    );
+}
+
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
         zoom: 12,
@@ -107,13 +120,11 @@ function initMap() {
 	streetViewControl: false,
 	keyboardShortcuts: false
     });
-    let showComparisonLink = isWeekday(date)
-	? "<div id='overlayPreviousDaysLink'><a href='#' onclick='overlayPreviousDaysOnGraph();'>Compare with last 5 weekdays</a></div>"
-	: "";
+
     infowindow = new google.maps.InfoWindow({
 	content: "<div id='graphcontainer'>" +
 	             "<img src='loading.gif' id='graphloading'></img>" +
-	             showComparisonLink +
+	             "<div id='overlayPreviousDaysLink'></div>" +
                      "<div id='graph'></div>" +
 	         "</div>"
     });
@@ -234,6 +245,7 @@ function constructMapMarker(color, lat, lon, stationId) {
 	    
 	    infowindow.setPosition(event.latLng);
 	    infowindow.open(map);
+	    showComparisonLinkIfNecessary();
 
 	    // Show loading indicator
 	    $( "#graph" ).empty();
@@ -371,15 +383,29 @@ function plotLineOnGraph(data, color, width) {
 }
 
 function overlayPreviousDaysOnGraph() {
-    let date_string = getPriorWeekdays(date, 5).map((day) => {return dateToString(day, '-'); }).join(',');
-    let colors = ['#ae017e', '#dd3497', '#9f768a1', '#fa9fb5', '#fcc5c0'];
+    let dates = getPriorWeekdays(date, 5);
+    let date_string = dates.map((day) => {return dateToString(day, '-'); }).join(',');
+    let colors = ['#ae017e', '#dd3497', '#f768a1', '#fa9fb5', '#fcc5c0'];
     performAjaxCallForGraphData(selected_station, date_string, (all_data) => {
+        let date_short_strings = dates.map((date) => {
+	    return " " + (date.getMonth() + 1) + "/" + date.getDate() + " ";
+	});
+	let legend = "";
+
 	for (var index in all_data) {
+	    legend = "<span style='color: " + colors[index] + ";'>" + date_short_strings[index] + "</span>" + legend;
+
 	    let day_data = all_data[index];
 	    let d3_data = convertJsonToD3Format(day_data);
 	    plotLineOnGraph(d3_data, colors[index], '2');
 	}
+
+	$( '#overlayPreviousDaysLink' ).empty();
+	$( '#overlayPreviousDaysLink' ).append(legend);
     });
+
+    $( '#overlayPreviousDaysLink' ).empty();
+    $( '#overlayPreviousDaysLink' ).append("<img src='loading.gif' id='previousDayLoading' />");
 }
 
 // Initialize
