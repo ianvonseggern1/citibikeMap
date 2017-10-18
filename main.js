@@ -243,7 +243,7 @@ function constructMapMarker(color, lat, lon, stationId) {
 	    performAjaxCallForGraphData(stationId, dateToString(date, '-'), (ajax_data) => {
 		let d3_data = convertJsonToD3Format(ajax_data);
 		constructGraphAndAxis(d3_data);
-	        plotLineOnGraph(d3_data, 'blue');
+	        plotLineOnGraph(d3_data, '#7a0177', '4');
 	    });
 	};
     }(stationId)); // currying station_id
@@ -349,7 +349,7 @@ function constructGraphAndAxis(data) {
 }
 
 // Plots a line on an existing graph
-function plotLineOnGraph(data, color) {
+function plotLineOnGraph(data, color, width) {
     var x = getXTransformForD3();
     var y = getYTransformForD3(data);    
 
@@ -364,6 +364,7 @@ function plotLineOnGraph(data, color) {
     svg.append("path")
         .data([data])
         .attr("class", "line")
+        .attr("stroke-width", width)
         .attr("stroke", color)
         .attr("fill", "none")
         .attr("d", valueline(data));
@@ -371,11 +372,12 @@ function plotLineOnGraph(data, color) {
 
 function overlayPreviousDaysOnGraph() {
     let date_string = getPriorWeekdays(date, 5).map((day) => {return dateToString(day, '-'); }).join(',');
+    let colors = ['#ae017e', '#dd3497', '#9f768a1', '#fa9fb5', '#fcc5c0'];
     performAjaxCallForGraphData(selected_station, date_string, (all_data) => {
 	for (var index in all_data) {
 	    let day_data = all_data[index];
 	    let d3_data = convertJsonToD3Format(day_data);
-	    plotLineOnGraph(d3_data, 'black');
+	    plotLineOnGraph(d3_data, colors[index], '2');
 	}
     });
 }
