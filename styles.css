@@ -49,10 +49,10 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    margin-top: -50px;
-    margin-left: -50px;
-    height: 100px;
-    width: 100px;
+    margin-top: -182px;
+    margin-left: -150px;
+    height: 365px;
+    width: 300px;
 }
 
 /* Need to set line-height on this outer div */
