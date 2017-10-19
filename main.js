@@ -3,6 +3,7 @@ var map;
 var infowindow;
 var type;      
 var stations_by_time;
+var station_locations;
 var minutes_past_midnight = 600;
 var selected_station = null;
 var date;
@@ -141,7 +142,9 @@ function initMap() {
 
 // Callback from jsonp ajax request for station data
 function parseData(data) {
-    stations_by_time = data;
+    console.log(data);
+    stations_by_time = data.data;
+    station_locations = data.locations;
     constructMarkers();
 
     $( "#mapLoadingOverlay" ).hide();
@@ -167,10 +170,9 @@ function refreshTimestamp(new_time) {
 // We construct a marker of each color for each station, but don't set any of them as visible
 var circles_by_station_id = {};
 function constructMarkers() {
-    let stations = stations_by_time[String(minutes_past_midnight)];
-    for(var station_id in stations) {
-	let lat = stations[station_id].lat;
-	let lon = stations[station_id].lon;
+    for(var station_id in station_locations) {
+	let lat = station_locations[station_id].lat;
+	let lon = station_locations[station_id].lon;
 
 	if (isNaN(lat) || isNaN(lon)) {
             continue;
@@ -191,9 +193,12 @@ function refreshStations() {
     var stations = stations_by_time[String(minutes_past_midnight)];
     
     for (var station_id in circles_by_station_id) {
-	let desired_color = getMarkerColor(stations[station_id]);
+	var desired_color = null;
+	if (station_id in stations) {
+	    desired_color = getMarkerColor(stations[station_id]);
+	}
+	
 	let circles = circles_by_station_id[station_id];
-
 	for(var marker_color in circles) {
 	    if (marker_color === desired_color) {
 		circles[marker_color].setMap(map);
@@ -210,12 +215,12 @@ function getMarkerColor(station_data) {
 	if (!station_data.is_renting) {
 	    return null;
 	}
-	available = station_data.num_bikes_available;
+	available = station_data.bikes;
     } else if (type === 'dock') {
         if (!station_data.is_returning) {
 	    return null;
 	}
-        available = station_data.num_docks_available;
+        available = station_data.docks;
     }
 
     var color = 'green';
@@ -294,7 +299,7 @@ function performAjaxCallForGraphData(stationId, dateString, callback) {
 // that into a sorted array of objects with a 'time' and 'available' key that we can use
 // with d3 to plot this data.
 function convertJsonToD3Format(json_data) {
-    var key_for_type = (type == 'dock') ? 'num_docks_available' : 'num_bikes_available';
+    var key_for_type = (type == 'dock') ? 'docks' : 'bikes';
 
     var d3_data = [];
     for (let time in json_data) {
