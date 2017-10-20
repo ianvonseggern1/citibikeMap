@@ -194,7 +194,7 @@ function refreshStations() {
     
     for (var station_id in circles_by_station_id) {
 	var desired_color = null;
-	if (station_id in stations) {
+	if (stations !== undefined && station_id in stations) {
 	    desired_color = getMarkerColor(stations[station_id]);
 	}
 	
