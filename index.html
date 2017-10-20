@@ -18,9 +18,16 @@
       <h2 id="header">Citibike Historical Availability</h2>
       <img src="info_icon.png" id="infoicon" />
 
-      <div id="explanationModal">
-	<p>Welcome, this is a map to help you explore the availability of citibikes/docks for a given day in the past. I personally find citibiking to be the most fun and healthy way to get around New York, but finding that there are no bikes available or even worse no docks once you have a bike out is frustrating. Because I find a biking commute so much nicer than packing into the train, before my last move I started checking the citibike map regularly and seeing which hours there were and were not bikes at the stations near my potential new apartments. Whether you're equally devoted to finding a citibike friendly apartment, trying to decide if a membership would work for your commute, or just curious which parts of the city have bikes at what hours, this website is intended to help you.</p>
-	<p>To use this map, first select the day in the past you're interested in from the date picker in the top left. Wait while the page downloads the data for that day, and then explore by moving the timeslider on the bottom of the map and select bikes/docks from the drop down in the bottom right. The map shows data for every 30 minutes through the day. A green dot indicates 3+ available bikes/docks, yellow 1-2, and red 0. You can zoom and move the map, and to get more information about a specific station by clicking on it. Clicking will bring up a graph of availabilty over the hour before and after the time you have selected.</p>
+      <div id="explanationModalContainer">
+	<div id="explanationModal">
+	  <p>Welcome!</p>
+	  <p>Pick a day to see which stations had bikes at different times.</p>
+	  <p>Once the data for that day loads you can use the slider at the bottom to see how availability varies over the day. You can use the drop down next to the slider to toggle between bikes and docks.</p>
+	  <p>This shows you general trends for every half hour, with a green dot, yellow, and red indicating 3+, 1 or 2, and 0 bikes available respectively. if you want to see more specifics about a station, click on it. This will load a graph of availability spanning the hour before and after the currently selected time.</p>
+	  <p>Some stations are always low on bikes at certain times of day, and others vary a lot, to help visualize this for any weekday can click the 'Overlay pervious weekdays' link above the graph, and it will show you how today compares to the last five weekdays.</p>
+	  <p>Of course availability varies with time of year, weather, other station conditions, and current rebalancing programs - but hopefully this helps you get a little more insight into your local citibike stations! I made this in large part because I was enjoying my citibike commute so much more than packing onto the train that when I moved I wanted to see which apartments were citibike friendly, and the only way to do that was to check the app each morning when I woke up and when I left work.</p>
+	  <p>If you have any questions or problems, feel free to email me at ianvonseggern@gmail.com.</p>
+	</div>
       </div>
 
       <input type="text" id="datepicker" />
