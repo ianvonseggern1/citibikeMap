@@ -69,7 +69,7 @@ function setupPickers() {
 	              .datepicker("setDate", date);
     $( "#datepicker").on("change", (event) => {
 	let selectedDate = $( "#datepicker" ).datepicker("getDate");
-	var newUrl = "http://ianv.me/citibikeDayMap/index.html";
+	var newUrl = "https://ianv.me/citibikeDayMap/index.html";
 	newUrl += "?date=" + dateToString(selectedDate, "-") + "&type=" + type;
 	window.location.href = newUrl;
     });
@@ -133,7 +133,7 @@ function initMap() {
     $( "#mapLoadingOverlay" ).show();
     
     // Get our json data via jsonp
-    var json_url_string = 'http://ianv.me/citibike.json?callback=parseData&date='; 
+    var json_url_string = 'https://ianv.me/citibike.json?callback=parseData&date='; 
     json_url_string += dateToString(date, '-');      
     var script = document.createElement('script');
     script.src = json_url_string;
@@ -276,7 +276,7 @@ function convertMinutesAfterMidnightToDate(minutes) {
 }
 
 function performAjaxCallForGraphData(stationId, dateString, callback) {
-    var ajax_url = "http://ianv.me/citibike.json";
+    var ajax_url = "https://ianv.me/citibike.json";
     ajax_url += "?date=" + dateString;
     ajax_url += "&start_time=" + String(minutes_past_midnight - 60);
     ajax_url += "&end_time=" + String(minutes_past_midnight + 60);
