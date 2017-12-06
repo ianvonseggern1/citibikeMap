@@ -24,22 +24,14 @@ function dateToString(date, seperator) {
   date.getDate();
 }
 
-let GRAPH_WIDTH = 250;
-let GRAPH_HEIGHT = 100;
-let GRAPH_PADDING = 20;
 
-class CitibikeHistoricalMap {
+class CitibikeHistoricalMapController {
   constructor() {
-    // this.map = null;
-    // this.infowindow = null;
-    // this.type = null;
-    // this.date = null;
-    // this.stations_by_time = null;
-    // this.station_locations = null;
     this.minutes_past_midnight = 600;
     this.selected_station = null;
     this.circles_by_station_id = {};
 
+    this.stationGraphController = new stationGraphController(this);
 
     this.getValuesFromQueryParameters();
     this.setupPickers();
@@ -114,19 +106,6 @@ class CitibikeHistoricalMap {
     $( "#infoicon" ).on("click", () => { $( "#explanationModal" ).toggle(); });
   }
 
-  // This adds a button to show the last five weekdays on the infowindow detail graph
-  // We only offer a comparison if it's a weekday
-  showComparisonLinkIfNecessary() {
-    if (!isWeekday(this.date)) {
-      return;
-    }
-
-    $( "#overlayPreviousDaysLink" ).empty();
-    $( "#overlayPreviousDaysLink" ).append(
-      "<a href='#' onclick='map.overlayPreviousDaysOnGraph();'>Compare with last 5 weekdays</a>"
-    );
-  }
-
   initMap() {
     this.map = new google.maps.Map(document.getElementById('map'), {
       zoom: 12,
@@ -138,13 +117,7 @@ class CitibikeHistoricalMap {
       keyboardShortcuts: false
     });
 
-    this.infowindow = new google.maps.InfoWindow({
-      content: "<div id='graphcontainer'>" +
-      "<img src='loading.gif' id='graphloading'></img>" +
-      "<div id='overlayPreviousDaysLink'></div>" +
-      "<div id='graph'></div>" +
-      "</div>"
-    });
+    this.stationGraphController.initalizeInfowindow(this.map);
 
     $( "#mapLoadingOverlay" ).show();
 
@@ -203,7 +176,7 @@ class CitibikeHistoricalMap {
   // To set the markers for a specific time we iterate through and set only the appropriate color
   // visible, hiding all other markers for that station
   refreshStations() {
-    this.infowindow.close();
+    this.stationGraphController.closeInfowindow();
     let stations = this.stations_by_time[String(this.minutes_past_midnight)];
 
     for (var station_id in this.circles_by_station_id) {
@@ -261,29 +234,70 @@ class CitibikeHistoricalMap {
     circle.addListener('click', function(that, stationId) {
       return function(event) {
         that.selected_station = stationId;
-
-        that.infowindow.setPosition(event.latLng);
-        that.infowindow.open(that.map);
-        that.showComparisonLinkIfNecessary();
-
-        // Show loading indicator
-        $( "#graph" ).empty();
-        $( "#graph" ).hide();
-        $( "#graphloading" ).show();
-
-        that.performAjaxCallForGraphData(stationId, dateToString(that.date, '-'), (ajax_data) => {
-          let d3_data = that.convertJsonToD3Format(ajax_data);
-          that.constructGraphAndAxis(d3_data);
-          that.plotLineOnGraph(d3_data, '#7a0177', '4');
-        });
+        that.stationGraphController.stationSelected(event, stationId);
       };
-    }(this, stationId)); // currying station_id
+    }(this, stationId));
 
     return circle;
   }
+}
+
+let GRAPH_WIDTH = 250;
+let GRAPH_HEIGHT = 100;
+let GRAPH_PADDING = 20;
+
+// Controls whats shown when a specific station is clicked on the map
+class stationGraphController {
+  constructor(mapController) {
+    this.mapController = mapController;
+  }
+
+  initalizeInfowindow() {
+    this.infowindow = new google.maps.InfoWindow({
+      content: "<div id='graphcontainer'>" +
+      "<img src='loading.gif' id='graphloading'></img>" +
+      "<div id='overlayPreviousDaysLink'></div>" +
+      "<div id='graph'></div>" +
+      "</div>"
+    });
+  }
+
+  closeInfowindow() {
+    this.infowindow.close();
+  }
+
+  stationSelected(event, stationId) {
+    this.infowindow.setPosition(event.latLng);
+    this.infowindow.open(this.mapController.map);
+    this.showComparisonLinkIfNecessary();
+
+    // Show loading indicator
+    $( "#graph" ).empty();
+    $( "#graph" ).hide();
+    $( "#graphloading" ).show();
+
+    this.performAjaxCallForGraphData(stationId, dateToString(this.mapController.date, '-'), (ajax_data) => {
+      let d3_data = this.convertJsonToD3Format(ajax_data);
+      this.constructGraphAndAxis(d3_data);
+      this.plotLineOnGraph(d3_data, '#7a0177', '4');
+    });
+  }
+
+  // This adds a button to show the last five weekdays on the infowindow detail graph
+  // We only offer a comparison if it's a weekday
+  showComparisonLinkIfNecessary() {
+    if (!isWeekday(this.mapController.date)) {
+      return;
+    }
+
+    $( "#overlayPreviousDaysLink" ).empty();
+    $( "#overlayPreviousDaysLink" ).append(
+      "<a href='#' onclick='map.stationGraphController.overlayPreviousDaysOnGraph();'>Compare with last 5 weekdays</a>"
+    );
+  }
 
   convertMinutesAfterMidnightToDate(minutes) {
-    var dateTime = new Date(this.date);
+    var dateTime = new Date(this.mapController.date);
     dateTime.setHours(0);
     dateTime.setMinutes(minutes);
     return dateTime;
@@ -292,28 +306,28 @@ class CitibikeHistoricalMap {
   performAjaxCallForGraphData(stationId, dateString, callback) {
     var ajax_url = "https://ianv.me/citibike.json";
     ajax_url += "?date=" + dateString;
-    ajax_url += "&start_time=" + String(this.minutes_past_midnight - 60);
-    ajax_url += "&end_time=" + String(this.minutes_past_midnight + 60);
+    ajax_url += "&start_time=" + String(this.mapController.minutes_past_midnight - 60);
+    ajax_url += "&end_time=" + String(this.mapController.minutes_past_midnight + 60);
     ajax_url += "&step=6";
     ajax_url += "&station=" + stationId;
 
-    $.ajax({ url: ajax_url, success: function(selectedStation, stationId) {
+    $.ajax({ url: ajax_url, success: function(mapController, stationId) {
       return function(result) {
         // If the user has selected a new marker throw this result away
-        if (stationId != selectedStation) {
+        if (stationId != mapController.selected_station) {
           return;
         }
 
         callback(result);
       };
-    }(this.selected_station, stationId)});
+    }(this.mapController, stationId)});
   }
 
   // The citibike data is an object mapping times to station info. This function converts
   // that into a sorted array of objects with a 'time' and 'available' key that we can use
   // with d3 to plot this data.
   convertJsonToD3Format(json_data) {
-    var key_for_type = (this.type == 'dock') ? 'docks' : 'bikes';
+    var key_for_type = (this.mapController.type == 'dock') ? 'docks' : 'bikes';
 
     var d3_data = [];
     for (let time in json_data) {
@@ -329,8 +343,8 @@ class CitibikeHistoricalMap {
   // axis and for plotting lines
 
   getXTransformForD3() {
-    var startTime = this.convertMinutesAfterMidnightToDate(this.minutes_past_midnight - 60);
-    var endTime = this.convertMinutesAfterMidnightToDate(this.minutes_past_midnight + 60);
+    var startTime = this.convertMinutesAfterMidnightToDate(this.mapController.minutes_past_midnight - 60);
+    var endTime = this.convertMinutesAfterMidnightToDate(this.mapController.minutes_past_midnight + 60);
     return d3.scaleTime().range([0, GRAPH_WIDTH]).domain([startTime, endTime]);
   }
 
@@ -398,10 +412,10 @@ class CitibikeHistoricalMap {
   }
 
   overlayPreviousDaysOnGraph() {
-    let dates = getPriorWeekdays(this.date, 5);
+    let dates = getPriorWeekdays(this.mapController.date, 5);
     let date_string = dates.map((day) => {return dateToString(day, '-'); }).join(',');
     let colors = ['#ae017e', '#dd3497', '#f768a1', '#fa9fb5', '#fcc5c0'];
-    this.performAjaxCallForGraphData(this.selected_station, date_string, (all_data) => {
+    this.performAjaxCallForGraphData(this.mapController.selected_station, date_string, (all_data) => {
       let date_short_strings = dates.map((date) => {
         return " " + (date.getMonth() + 1) + "/" + date.getDate() + " ";
       });
@@ -424,7 +438,7 @@ class CitibikeHistoricalMap {
   }
 }
 
-let map = new CitibikeHistoricalMap();
+let map = new CitibikeHistoricalMapController();
 
 // Callbacks
 
