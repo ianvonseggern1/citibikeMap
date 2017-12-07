@@ -77,7 +77,7 @@ class CitibikeHistoricalMapController {
     }).datepicker("setDate", this.date);
     $( "#datepicker").on("change", (event) => {
       let selectedDate = $( "#datepicker" ).datepicker("getDate");
-      var newUrl = "https://ianv.me/citibikeDayMap/index.html";
+      var newUrl = window.location.pathname;
       newUrl += "?date=" + dateToString(selectedDate, "-") + "&type=" + this.type;
       window.location.href = newUrl;
     });
@@ -133,7 +133,9 @@ class CitibikeHistoricalMapController {
   parseData(data) {
     this.stations_by_time = data.data;
     this.station_locations = data.locations;
+
     this.constructMarkers();
+    this.drawHeatmap();
 
     $( "#mapLoadingOverlay" ).hide();
     this.refreshStations();
@@ -240,6 +242,87 @@ class CitibikeHistoricalMapController {
 
     return circle;
   }
+
+  // Displays a heatmap of red and yellow counts over the time slider
+  drawHeatmap () {
+    let data = this.constructHeatmapData();
+
+    console.log(data);
+
+    let width = $("#timeslider").width(); // TODO refresh on resize
+    let height = 80;
+
+    var svg = d3.select("#heatmap")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .append("g");
+
+    let xTransform = d3.scaleTime().range([0, width]).domain([0, 1410]);
+    let yTransform = d3.scaleLinear().range([height, 0])
+    .domain([0, d3.max(data, (d) => { return d.low; })]);
+
+    let emptyLine = d3.line()
+    .x(function(d) { return xTransform(d.time); })
+    .y(function(d) { return yTransform(d.empty); });
+
+    let lowLine = d3.line()
+    .x(function(d) { return xTransform(d.time); })
+    .y(function(d) { return yTransform(d.low); });
+
+    svg.append("path")
+    .data([data])
+    .attr("class", "line")
+    .attr("stroke-width", 2)
+    .attr("stroke", "red")
+    .attr("fill", "none")
+    .attr("d", emptyLine(data));
+
+    svg.append("path")
+    .data([data])
+    .attr("class", "line")
+    .attr("stroke-width", 2)
+    .attr("stroke", "yellow")
+    .attr("fill", "none")
+    .attr("d", lowLine(data));
+  }
+
+  // Uses stations_by_time to constuct a sorted array of objects containing
+  // time, empty (0 bikes/docks), low (2 or fewer bikes/docks)
+  constructHeatmapData() {
+    let key_for_type = (this.type == 'dock') ? 'docks' : 'bikes';
+    let renting_key_for_type = (this.type == 'dock') ? 'is_returning' : 'is_renting';
+    var data = [];
+
+    for(let time in this.stations_by_time) {
+      var empty = 0;
+      var low = 0;
+      for(let station in this.stations_by_time[time]) {
+        let stationData = this.stations_by_time[time][station];
+
+        // Don't count disabled stations
+        if (!stationData[renting_key_for_type]) {
+          continue;
+        }
+
+        let count = stationData[key_for_type];
+        if (count === 0) {
+          empty += 1;
+        }
+        if (count <= 2) {
+          low += 1;
+        }
+      }
+
+      data.push({
+        "time": time,
+        "empty": empty,
+        "low": low,
+      });
+    }
+
+    return data;
+  }
 }
 
 let GRAPH_WIDTH = 250;
@@ -327,12 +410,14 @@ class stationGraphController {
   // that into a sorted array of objects with a 'time' and 'available' key that we can use
   // with d3 to plot this data.
   convertJsonToD3Format(json_data) {
-    var key_for_type = (this.mapController.type == 'dock') ? 'docks' : 'bikes';
+    let key_for_type = (this.mapController.type == 'dock') ? 'docks' : 'bikes';
 
     var d3_data = [];
     for (let time in json_data) {
-      d3_data.push({"time": this.convertMinutesAfterMidnightToDate(time),
-      "available": json_data[time][key_for_type]})
+      d3_data.push({
+        "time": this.convertMinutesAfterMidnightToDate(time),
+        "available": json_data[time][key_for_type]
+      });
     }
     d3_data.sort((x, y) => { return (x.time > y.time) ? 1 : -1; }); // accending time
     return d3_data;
