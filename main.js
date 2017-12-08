@@ -99,6 +99,7 @@ class CitibikeHistoricalMapController {
     });
     $( "#timeslider" ).on("slide", (_, ui) => {
       this.refreshTimestamp(ui.value);
+      this.placeHeatmapDots(ui.value);
     });
 
     $( "#timeslider .ui-slider-handle" ).append("<span id='slideTimestamp'></span>")
@@ -243,24 +244,42 @@ class CitibikeHistoricalMapController {
     return circle;
   }
 
+  heatmapXTransform() {
+    return d3.scaleTime().range([0, this.heatmapWidth()]).domain([0, 1410]);
+  }
+
+  // Need to call getHeatmapData first so we can figure out the max Y value
+  heatmapYTransform() {
+    return d3.scaleLinear().range([this.heatmapHeight(), 0])
+    .domain([0, d3.max(this.heatmapData, (d) => { return d.low; })]);
+  }
+
+  heatmapWidth() {
+    return $("#timeslider").width();
+  }
+
+  heatmapHeight() {
+    return 80;
+  }
+
   // Displays a heatmap of red and yellow counts over the time slider
   drawHeatmap () {
-    let data = this.constructHeatmapData();
+    let data = this.getHeatmapData();
 
     console.log(data);
 
-    let width = $("#timeslider").width(); // TODO refresh on resize
-    let height = 80;
+    $( "#heatmapEmptyDot" ).show();
+    $( "#heatmapLowDot" ).show();
+    this.placeHeatmapDots(this.minutes_past_midnight);
 
     var svg = d3.select("#heatmap")
     .append("svg")
-    .attr("width", width)
-    .attr("height", height)
+    .attr("width", this.heatmapWidth())
+    .attr("height", this.heatmapHeight())
     .append("g");
 
-    let xTransform = d3.scaleTime().range([0, width]).domain([0, 1410]);
-    let yTransform = d3.scaleLinear().range([height, 0])
-    .domain([0, d3.max(data, (d) => { return d.low; })]);
+    let xTransform = this.heatmapXTransform();
+    let yTransform = this.heatmapYTransform();
 
     let emptyLine = d3.line()
     .x(function(d) { return xTransform(d.time); })
@@ -268,7 +287,7 @@ class CitibikeHistoricalMapController {
 
     let emptyArea = d3.area()
     .x(function(d) { return xTransform(d.time); })
-    .y0(height)
+    .y0(this.heatmapHeight())
     .y1(function(d) { return yTransform(d.empty); });
 
     let lowLine = d3.line()
@@ -311,9 +330,40 @@ class CitibikeHistoricalMapController {
     .attr("d", lowArea);
   }
 
+  placeHeatmapDots(time) {
+    var dataIndex = 0;
+    let lowCount = null;
+    let emptyCount = null;
+    while (dataIndex < this.heatmapData.length) {
+      if (this.heatmapData[dataIndex].time === String(time)) {
+        lowCount = this.heatmapData[dataIndex].low;
+        emptyCount = this.heatmapData[dataIndex].empty;
+        break;
+      }
+      dataIndex += 1;
+    }
+
+    if (lowCount === null || emptyCount === null) {
+      console.log("Couldn't find the time in the data");
+      return;
+    }
+
+    let xPosition = this.heatmapXTransform()(time);
+    let yTransform = this.heatmapYTransform();
+    let lowYPosition = yTransform(lowCount);
+    let emptyYPosition = yTransform(emptyCount);
+
+    $( "#heatmapLowDot" ).css({top: lowYPosition, left: xPosition});
+    $( "#heatmapEmptyDot" ).css({top: emptyYPosition, left: xPosition});
+  }
+
   // Uses stations_by_time to constuct a sorted array of objects containing
   // time, empty (0 bikes/docks), low (2 or fewer bikes/docks)
-  constructHeatmapData() {
+  getHeatmapData() {
+    if (this.heatmapData !== undefined) {
+      return this.heatmapData;
+    }
+
     let key_for_type = (this.type == 'dock') ? 'docks' : 'bikes';
     let renting_key_for_type = (this.type == 'dock') ? 'is_returning' : 'is_renting';
     var data = [];
@@ -345,6 +395,7 @@ class CitibikeHistoricalMapController {
       });
     }
 
+    this.heatmapData = data;
     return data;
   }
 }

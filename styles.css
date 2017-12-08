@@ -117,6 +117,24 @@
   position: absolute;
 }
 
+.heatmapDot {
+  display: none;
+  border-radius: 5px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  margin-top: -5px;
+  position: absolute;
+}
+
+#heatmapEmptyDot {
+  background-color: #FF2D55
+}
+
+#heatmapLowDot {
+  background-color: #FFCC00;
+}
+
 #timeslider .ui-slider-handle {
     width: 90px;
     height: 30px;
