@@ -67,6 +67,9 @@ class CitibikeHistoricalMapController {
     $( "#typepicker" ).on("change", (event, ui) => {
       this.type = $( "#typepicker" ).val();
       this.refreshStations();
+
+      this.heatmapData = undefined;
+      this.drawHeatmap();
     });
 
     // Jquery date picker. Selecting a new day reloads the page
