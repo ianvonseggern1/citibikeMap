@@ -101,6 +101,9 @@ class CitibikeHistoricalMapController {
       this.refreshTimestamp(ui.value);
       this.placeHeatmapDots(ui.value);
     });
+    $(window).resize(() => {
+      this.drawHeatmap();
+    });
 
     $( "#timeslider .ui-slider-handle" ).append("<span id='slideTimestamp'></span>")
 
@@ -264,6 +267,8 @@ class CitibikeHistoricalMapController {
 
   // Displays a heatmap of red and yellow counts over the time slider
   drawHeatmap () {
+    $( "#heatmap svg" ).remove();
+
     let data = this.getHeatmapData();
 
     console.log(data);
