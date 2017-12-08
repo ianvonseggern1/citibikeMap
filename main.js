@@ -266,25 +266,49 @@ class CitibikeHistoricalMapController {
     .x(function(d) { return xTransform(d.time); })
     .y(function(d) { return yTransform(d.empty); });
 
+    let emptyArea = d3.area()
+    .x(function(d) { return xTransform(d.time); })
+    .y0(height)
+    .y1(function(d) { return yTransform(d.empty); });
+
     let lowLine = d3.line()
     .x(function(d) { return xTransform(d.time); })
     .y(function(d) { return yTransform(d.low); });
+
+    let lowArea = d3.area()
+    .x(function(d) { return xTransform(d.time); })
+    .y0(function(d) { return yTransform(d.empty); })
+    .y1(function(d) { return yTransform(d.low); });
 
     svg.append("path")
     .data([data])
     .attr("class", "line")
     .attr("stroke-width", 2)
-    .attr("stroke", "red")
+    .attr("stroke", '#FF2D55')
     .attr("fill", "none")
     .attr("d", emptyLine(data));
 
     svg.append("path")
     .data([data])
+    .attr("class", "area")
+    .attr("fill", '#FF2D55')
+    .attr("fill-opacity", 0.5)
+    .attr("d", emptyArea);
+
+    svg.append("path")
+    .data([data])
     .attr("class", "line")
     .attr("stroke-width", 2)
-    .attr("stroke", "yellow")
+    .attr("stroke", '#FFCC00')
     .attr("fill", "none")
     .attr("d", lowLine(data));
+
+    svg.append("path")
+    .data([data])
+    .attr("class", "area")
+    .attr("fill", '#FFCC00')
+    .attr("fill-opacity", 0.5)
+    .attr("d", lowArea);
   }
 
   // Uses stations_by_time to constuct a sorted array of objects containing
