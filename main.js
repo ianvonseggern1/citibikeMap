@@ -103,6 +103,7 @@ class CitibikeHistoricalMapController {
     $( "#timeslider" ).on("slide", (_, ui) => {
       this.refreshTimestamp(ui.value);
       this.placeHeatmapDots(ui.value);
+      this.updateCounts(ui.value);
     });
     $(window).resize(() => {
       this.drawHeatmap();
@@ -279,6 +280,7 @@ class CitibikeHistoricalMapController {
     $( "#heatmapEmptyDot" ).show();
     $( "#heatmapLowDot" ).show();
     this.placeHeatmapDots(this.minutes_past_midnight);
+    this.updateCounts(this.minutes_past_midnight);
 
     var svg = d3.select("#heatmap")
     .append("svg")
@@ -339,34 +341,64 @@ class CitibikeHistoricalMapController {
   }
 
   placeHeatmapDots(time) {
-    var dataIndex = 0;
-    let lowCount = null;
-    let emptyCount = null;
-    while (dataIndex < this.heatmapData.length) {
-      if (this.heatmapData[dataIndex].time === String(time)) {
-        lowCount = this.heatmapData[dataIndex].low;
-        emptyCount = this.heatmapData[dataIndex].empty;
-        break;
-      }
-      dataIndex += 1;
-    }
-
-    if (lowCount === null || emptyCount === null) {
-      console.log("Couldn't find the time in the data");
+    let counts = this.getTotalsAtTime(time);
+    if (counts === undefined) {
       return;
     }
 
     let xPosition = this.heatmapXTransform()(time);
     let yTransform = this.heatmapYTransform();
-    let lowYPosition = yTransform(lowCount);
-    let emptyYPosition = yTransform(emptyCount);
+    let lowYPosition = yTransform(counts.low);
+    let emptyYPosition = yTransform(counts.empty);
 
     $( "#heatmapLowDot" ).css({top: lowYPosition, left: xPosition});
     $( "#heatmapEmptyDot" ).css({top: emptyYPosition, left: xPosition});
   }
 
+  updateCounts(time) {
+    let counts = this.getTotalsAtTime(time);
+    if (counts === undefined) {
+      return;
+    }
+
+    $( "#totalCounts" ).show();
+
+    $( "#emptyCount" ).text(counts.empty);
+    $( "#lowCount" ).text(counts.low - counts.empty); // low includes empty
+    $( "#availableCount" ).text(counts.good);
+  }
+
+  getTotalsAtTime(time) {
+    var dataIndex = 0;
+    let lowCount = null;
+    let emptyCount = null;
+    let goodCount = null;
+    while (dataIndex < this.heatmapData.length) {
+      if (this.heatmapData[dataIndex].time === String(time)) {
+        lowCount = this.heatmapData[dataIndex].low;
+        emptyCount = this.heatmapData[dataIndex].empty;
+        goodCount = this.heatmapData[dataIndex].good;
+        break;
+      }
+      dataIndex += 1;
+    }
+
+    if (lowCount === null || emptyCount === null || goodCount === null) {
+      console.log("Couldn't find the time in the data");
+      return;
+    }
+
+    return {
+      "low": lowCount,
+      "empty": emptyCount,
+      "good": goodCount,
+    };
+  }
+
   // Uses stations_by_time to constuct a sorted array of objects containing
-  // time, empty (0 bikes/docks), low (2 or fewer bikes/docks)
+  // time, empty (0 bikes/docks), low (2 or fewer bikes/docks), good (3+ bikes)
+  // Note empty stations are also counted under low since we stack those lines
+  // graphs. To get purely stations with 1-2 bikes use (low - empty)
   getHeatmapData() {
     if (this.heatmapData !== undefined) {
       return this.heatmapData;
@@ -379,6 +411,7 @@ class CitibikeHistoricalMapController {
     for(let time in this.stations_by_time) {
       var empty = 0;
       var low = 0;
+      var good = 0;
       for(let station in this.stations_by_time[time]) {
         let stationData = this.stations_by_time[time][station];
 
@@ -394,12 +427,16 @@ class CitibikeHistoricalMapController {
         if (count <= 2) {
           low += 1;
         }
+        if (count > 2) {
+          good += 1;
+        }
       }
 
       data.push({
         "time": time,
         "empty": empty,
         "low": low,
+        "good": good,
       });
     }
 

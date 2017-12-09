@@ -112,7 +112,7 @@
   z-index: 2;
   left: 50px;
   bottom: 65px;
-  width: 1000px;
+  width: 50%;
   height: 80px;
   position: absolute;
 }
@@ -133,6 +133,30 @@
 
 #heatmapLowDot {
   background-color: #FFCC00;
+}
+
+#totalCounts {
+  display: none;
+  position: absolute;
+  bottom: 50px;
+  z-index: 2;
+  width: 36px;
+  margin-left: 6px;
+  text-align: center;
+  background-color: rgba(255,255,255,0.9);
+  border-radius: 6px;
+}
+
+#availableCount {
+  color: #4cd964;
+}
+
+#lowCount {
+  color: #FFCC00;
+}
+
+#emptyCount {
+  color: #FF2D55;
 }
 
 #timeslider .ui-slider-handle {
