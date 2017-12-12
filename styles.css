@@ -70,7 +70,6 @@
 
 /* Need to set line-height on this outer div */
 #options {
-    margin-left: 50px;
     line-height: 50px;
     position: absolute;
     z-index: 3;
@@ -200,6 +199,10 @@
   display: block;
   content: '';
   z-index: 3;
+}
+
+#timesliderLeftArrow {
+  margin-left: 50px;
 }
 
 .arrow:after {
