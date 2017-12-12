@@ -85,25 +85,45 @@ class CitibikeHistoricalMapController {
       window.location.href = newUrl;
     });
 
+    let sliderMin = 0;
+    let sliderMax = 1410; // 11:30 PM
+    let sliderStep = 30;
     // Select a time in the day. Time string updates while the user is sliding, we don't reload
     // the map until the release the slider.
     $( "#timeslider" ).slider({
-      "min":0,
-      "max":1410, // 11:30 PM
-      "step":30,
+      "min": sliderMin,
+      "max": sliderMax,
+      "step": sliderStep,
       "value":this.minutes_past_midnight
     });
     $( "#timeslider" ).on("slidechange", (_, ui) => {
       if (ui.value == this.minutes_past_midnight) {
         return;
       }
-      this.minutes_past_midnight = ui.value;
-      this.refreshStations();
+      this.timesliderChange(ui.value);
     });
     $( "#timeslider" ).on("slide", (_, ui) => {
-      this.refreshTimestamp(ui.value);
-      this.placeHeatmapDots(ui.value);
-      this.updateCounts(ui.value);
+      this.timesliderSlide(ui.value);
+    });
+    $( "#timesliderLeftArrow" ).on("click", () => {
+      let currentTime = $( "#timeslider" ).slider("option", "value");
+      if (currentTime === sliderMin) {
+        return;
+      }
+
+      let newTime = currentTime - sliderStep;
+      this.timesliderSlide(newTime);
+      $( "#timeslider" ).slider("value", newTime);
+    });
+    $( "#timesliderRightArrow" ).on("click", () => {
+      let currentTime = $( "#timeslider" ).slider("option", "value");
+      if (currentTime === sliderMax) {
+        return;
+      }
+
+      let newTime = currentTime + sliderStep;
+      this.timesliderSlide(newTime);
+      $( "#timeslider" ).slider("value", newTime);
     });
     $(window).resize(() => {
       this.drawHeatmap();
@@ -112,6 +132,20 @@ class CitibikeHistoricalMapController {
     $( "#timeslider .ui-slider-handle" ).append("<span id='slideTimestamp'></span>")
 
     $( "#infoicon" ).on("click", () => { $( "#explanationModal" ).toggle(); });
+  }
+
+  // While the slider is being moved we update the heatmap dots, counts, and
+  // timestamp
+  timesliderSlide(newTime) {
+    this.refreshTimestamp(newTime);
+    this.placeHeatmapDots(newTime);
+    this.updateCounts(newTime);
+  }
+
+  // After the slider has been moved we update the map dots
+  timesliderChange(newTime) {
+    this.minutes_past_midnight = newTime;
+    this.refreshStations();
   }
 
   initMap() {

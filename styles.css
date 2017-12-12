@@ -32,7 +32,7 @@
 #mapContainer {
     height: 100%;
     width: 100%;
-    min-width: 575px;
+    min-width: 730px;
     margin: auto;
     position: relative;
 }
@@ -70,6 +70,7 @@
 
 /* Need to set line-height on this outer div */
 #options {
+    margin-left: 50px;
     line-height: 50px;
     position: absolute;
     z-index: 3;
@@ -102,7 +103,7 @@
 }
 
 #timeslider {
-    margin-left: 50px;
+    margin: 0px 35px;
     width: 50%;
     pointer-events: all;
     border-color: black;
@@ -110,7 +111,7 @@
 
 #heatmap {
   z-index: 2;
-  left: 50px;
+  left: 131px;
   bottom: 65px;
   width: 50%;
   height: 80px;
@@ -160,13 +161,13 @@
 }
 
 #timeslider .ui-slider-handle {
-    width: 90px;
-    height: 30px;
+    width: 70px;
+    height: 26px;
     border-radius: 6px;
-    margin-left: -45px;
-    top: -9px;
+    margin-left: -35px;
+    top: -7px;
     border-color: black;
-    font-size: large;
+    font-size: medium;
 }
 
 #timeslider .ui-slider-handle.ui-state-active {
@@ -181,8 +182,57 @@
     padding-top: 5px;
 }
 
+.arrow {
+  width: 41px;
+  height: 50px;
+  position: relative;
+  pointer-events: all;
+}
+
+/* Hack to get border around arrow, use a smaller and larger arrow as before
+   and after elements */
+.arrow:before {
+  width: 0;
+  height: 0;
+  border-top: 25px solid transparent;
+  border-bottom: 25px solid transparent;
+  position: absolute;
+  display: block;
+  content: '';
+  z-index: 3;
+}
+
+.arrow:after {
+  width: 0;
+  height: 0;
+  border-top: 27px solid transparent;
+  border-bottom: 27px solid transparent;
+  position: absolute;
+  display: block;
+  content: '';
+  z-index: 2;
+  margin-top: -2px;
+  margin-left: -1px;
+}
+
+#timesliderLeftArrow:before {
+  border-right: 40px solid white;
+}
+
+#timesliderRightArrow:before {
+  border-left: 40px solid white;
+}
+
+#timesliderLeftArrow:after {
+  border-right: 42px solid black;
+}
+
+#timesliderRightArrow:after {
+  border-left: 42px solid black;
+}
+
 #typepicker {
-    margin-left: 50px;
+    margin-left: 15px;
     font-size: large;
     width: 90px;
     height: 30px;
