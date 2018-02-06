@@ -165,6 +165,7 @@
     position: absolute;
     z-index: 5;
     border-radius: 2px;
+    padding: 2px;
 }
 
 #timeslider .ui-slider-handle {

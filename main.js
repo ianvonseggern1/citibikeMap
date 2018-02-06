@@ -24,6 +24,19 @@ function dateToString(date, seperator) {
   date.getDate();
 }
 
+function minutesToTimeString(minutesPastMidnight) {
+  var hours = Math.floor(minutesPastMidnight / 60);
+  let am_pm = hours > 11 ? "PM" : "AM";
+  hours = hours % 12;
+  hours = hours == 0 ? 12 : hours;
+  let minutes = minutesPastMidnight % 60;
+  var minutes_string = String(minutes);
+  if (minutes_string.length == 1) {
+    minutes_string = "0" + minutes_string;
+  }
+  return String(hours) + ":" + minutes_string + " " + am_pm;
+}
+
 
 class CitibikeHistoricalMapController {
   constructor() {
@@ -35,7 +48,7 @@ class CitibikeHistoricalMapController {
 
     this.getValuesFromQueryParameters();
     this.setupPickers();
-    //this.setupTooltips();  
+    this.setupTooltips();
     this.refreshTimestamp(this.minutes_past_midnight);
   }
 
@@ -59,6 +72,43 @@ class CitibikeHistoricalMapController {
     if (this.type != 'bike' && this.type != 'dock') {
       console.log("Must set url param type to either bike or dock");
       this.type = 'bike';
+    }
+  }
+
+  setupTooltips() {
+    let countElements = ["#availableCount", "#lowCount", "#emptyCount"];
+    let elementDescriptions = ["3+", "1-2", "no"];
+
+    for(var elementIndex in countElements) {
+      let element = countElements[elementIndex];
+      let elementDescription = elementDescriptions[elementIndex];
+      $( element ).on("mouseenter", (event, ui) => {
+
+        let total = countElements.reduce((accumulation, reduceElement) => {
+          return accumulation + parseInt($(reduceElement).text());
+        }, 0)
+        let elementCount = parseInt($(element).text());
+
+        let tooltipString = elementCount + " of " + total;
+        tooltipString += " (" + Math.floor(100 * elementCount / total);
+        tooltipString += "%) of stations have ";
+        tooltipString += elementDescription;
+        tooltipString += " " + this.type + "s available at ";
+        tooltipString += minutesToTimeString(this.minutes_past_midnight);
+
+        var locationOfElement = $( element ).offset();
+        locationOfElement.top -= 26;
+        locationOfElement.left += 32;
+        $( "#countTooltip" ).css(locationOfElement);
+
+        $( "#countTooltip" ).empty();
+        $( "#countTooltip" ).text(tooltipString);
+        $( "#countTooltip" ).show();
+      });
+
+      $( element ).on("mouseleave", (event, ui) => {
+        $( "#countTooltip" ).hide();
+      });
     }
   }
 
@@ -186,17 +236,8 @@ class CitibikeHistoricalMapController {
 
   // new_time is minutes since midnight
   refreshTimestamp(new_time) {
-    var hours = Math.floor(new_time / 60);
-    let am_pm = hours > 11 ? "PM" : "AM";
-    hours = hours % 12;
-    hours = hours == 0 ? 12 : hours;
-    let minutes = new_time % 60;
-    var minutes_string = String(minutes);
-    if (minutes_string.length == 1) {
-      minutes_string = "0" + minutes_string;
-    }
     $( "#slideTimestamp" ).empty();
-    $( "#slideTimestamp" ).append(String(hours) + ":" + minutes_string + " " + am_pm);
+    $( "#slideTimestamp" ).append(minutesToTimeString(new_time));
   }
 
 
