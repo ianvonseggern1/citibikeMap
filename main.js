@@ -35,6 +35,7 @@ class CitibikeHistoricalMapController {
 
     this.getValuesFromQueryParameters();
     this.setupPickers();
+    //this.setupTooltips();  
     this.refreshTimestamp(this.minutes_past_midnight);
   }
 
