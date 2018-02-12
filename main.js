@@ -351,8 +351,6 @@ class CitibikeHistoricalMapController {
 
     let data = this.getHeatmapData();
 
-    console.log(data);
-
     $( "#heatmapEmptyDot" ).show();
     $( "#heatmapLowDot" ).show();
     this.placeHeatmapDots(this.minutes_past_midnight);
@@ -589,6 +587,7 @@ class stationGraphController {
     ajax_url += "&end_time=" + String(this.mapController.minutes_past_midnight + 60);
     ajax_url += "&step=6";
     ajax_url += "&station=" + stationId;
+    ajax_url += "&station_type=" + this.mapController.type;
 
     $.ajax({ url: ajax_url, success: function(mapController, stationId) {
       return function(result) {
@@ -606,14 +605,14 @@ class stationGraphController {
   // that into a sorted array of objects with a 'time' and 'available' key that we can use
   // with d3 to plot this data.
   convertJsonToD3Format(json_data) {
-    let key_for_type = (this.mapController.type == 'dock') ? 'docks' : 'bikes';
-
     var d3_data = [];
     for (let time in json_data) {
-      d3_data.push({
-        "time": this.convertMinutesAfterMidnightToDate(time),
-        "available": json_data[time][key_for_type]
-      });
+      if (json_data[time].data_available === true && json_data[time].is_renting === true) {
+        d3_data.push({
+          "time": this.convertMinutesAfterMidnightToDate(time),
+          "available": json_data[time].count
+        });
+      }
     }
     d3_data.sort((x, y) => { return (x.time > y.time) ? 1 : -1; }); // accending time
     return d3_data;
