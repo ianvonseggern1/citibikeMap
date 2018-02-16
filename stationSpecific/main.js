@@ -20,8 +20,7 @@ class Site extends React.Component {
     ajaxUrl += "&station_type=" + this.props.stationType;
     ajaxUrl += "&start_time=" + this.props.startTime;
     ajaxUrl += "&end_time=" + this.props.endTime;
-    ajaxUrl += "&step=" + this.props.timeStep; 
-    // TODO add option parameters station_type, start_time, end_time, step
+    ajaxUrl += "&step=" + this.props.timeStep;
 
     $.ajax({ url: ajaxUrl, success: (result) => {
       this.setState({isLoading: false, data: result});
@@ -107,61 +106,44 @@ class Table extends React.Component {
     let rows = [
       {
         'name': 'All Days',
-        'filter': (_dayData, _dayIndex) => { return true; },
+        'filter': (_dayData, _dayIndex) => true,
       },
       {
         'name': 'Weekdays',
-        'filter': (_dayData, dayIndex) => {
-          return this.isDayOfWeek(dayIndex, [1,2,3,4,5]);
-        },
+        'filter': (_dayData, dayIndex) =>
+          this.isDayOfWeek(dayIndex, [1,2,3,4,5]),
       },
       {
         'name': 'Weekends',
-        'filter': (_dayData, dayIndex) => {
-          return this.isDayOfWeek(dayIndex, [0, 6]);
-        },
+        'filter': (_dayData, dayIndex) => this.isDayOfWeek(dayIndex, [0,6]),
       },
       {
         'name': 'Saturdays',
-        'filter': (_dayData, dayIndex) => {
-          return this.isDayOfWeek(dayIndex, [6]);
-        },
+        'filter': (_dayData, dayIndex) => this.isDayOfWeek(dayIndex, [6]),
       },
       {
         'name': 'Sundays',
-        'filter': (_dayData, dayIndex) => {
-          return this.isDayOfWeek(dayIndex, [0]);
-        },
+        'filter': (_dayData, dayIndex) => this.isDayOfWeek(dayIndex, [0]),
       },
       {
         'name': 'Mondays',
-        'filter': (_dayData, dayIndex) => {
-          return this.isDayOfWeek(dayIndex, [1]);
-        },
+        'filter': (_dayData, dayIndex) => this.isDayOfWeek(dayIndex, [1]),
       },
       {
         'name': 'Tuesdays',
-        'filter': (_dayData, dayIndex) => {
-          return this.isDayOfWeek(dayIndex, [2]);
-        },
+        'filter': (_dayData, dayIndex) => this.isDayOfWeek(dayIndex, [2]),
       },
       {
         'name': 'Wednesdays',
-        'filter': (_dayData, dayIndex) => {
-          return this.isDayOfWeek(dayIndex, [3]);
-        },
+        'filter': (_dayData, dayIndex) => this.isDayOfWeek(dayIndex, [3]),
       },
       {
         'name': 'Thursdays',
-        'filter': (_dayData, dayIndex) => {
-          return this.isDayOfWeek(dayIndex, [4]);
-        },
+        'filter': (_dayData, dayIndex) => this.isDayOfWeek(dayIndex, [4]),
       },
       {
         'name': 'Fridays',
-        'filter': (_dayData, dayIndex) => {
-          return this.isDayOfWeek(dayIndex, [5]);
-        },
+        'filter': (_dayData, dayIndex) => this.isDayOfWeek(dayIndex, [5]),
       },
     ];
 
@@ -321,14 +303,32 @@ function getValuesFromQueryParameters() {
       return;
     }
 
+    var startTime = queryParameters.get('start_time');
+    if (startTime === null) {
+      startTime = 360; // 6am
+    }
+    var endTime = queryParameters.get('end_time');
+    if (endTime === null) {
+      endTime = 1440; // midnight
+    }
+    var timeStep = queryParameters.get('time_step');
+    if (timeStep === null) {
+      timeStep = 60; // 1 hour
+    }
+    var stationType = queryParameters.get('station_type');
+    if (stationType === null) {
+      stationType = 'bike'; // as opposed to 'dock'
+    }
+
+
     return({
       'startDateString': queryParameters.get('start_date'),
       'endDateString': queryParameters.get('end_date'),
       'station': queryParameters.get('station'),
-      'startTime': 360, // 6am. TODO make this a query parameter
-      'endTime': 1440, // midnight. TODO make this a query parameter
-      'timeStep': 60, // 1 hour. TODO make this a query parameter
-      'stationType': 'bike', // as opposed to 'dock'. TODO make this a q param
+      'startTime': startTime,
+      'endTime': endTime,
+      'timeStep': timeStep,
+      'stationType': stationType,
     });
 }
 
