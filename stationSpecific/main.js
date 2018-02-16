@@ -14,9 +14,13 @@ class Site extends React.Component {
 
   fetchData() {
     let ajaxUrl = "https://ianv.me/citibikeStationSummary.json";
-    ajaxUrl += "?station=" + this.props.queryParameters.station;
-    ajaxUrl += "&start_date=" + this.props.queryParameters.startDateString;
-    ajaxUrl += "&end_date=" + this.props.queryParameters.endDateString;
+    ajaxUrl += "?station=" + this.props.station;
+    ajaxUrl += "&start_date=" + this.props.startDateString;
+    ajaxUrl += "&end_date=" + this.props.endDateString;
+    ajaxUrl += "&station_type=" + this.props.stationType;
+    ajaxUrl += "&start_time=" + this.props.startTime;
+    ajaxUrl += "&end_time=" + this.props.endTime;
+    ajaxUrl += "&step=" + this.props.timeStep; 
     // TODO add option parameters station_type, start_time, end_time, step
 
     $.ajax({ url: ajaxUrl, success: (result) => {
@@ -33,13 +37,13 @@ class Site extends React.Component {
       return (<p>Loading...</p>);
     }
 
-    let startDateParts = this.props.queryParameters.startDateString.split('-');
+    let startDateParts = this.props.startDateString.split('-');
     let startDate = new Date(
       startDateParts[0],
       startDateParts[1],
       startDateParts[2],
     );
-    let endDateParts = this.props.queryParameters.endDateString.split('-');
+    let endDateParts = this.props.endDateString.split('-');
     let endDate = new Date(
       endDateParts[0],
       endDateParts[1],
@@ -47,33 +51,13 @@ class Site extends React.Component {
     );
     return (
       <Table
+        data={this.state.data}
         startDate={startDate}
         endDate={endDate}
-        data={this.state.data}
+        {...this.props}
       />
     );
   }
-}
-
-function getValuesFromQueryParameters() {
-    let queryParameters = new URLSearchParams(window.location.search);
-
-    if (
-      !queryParameters.has('start_date') ||
-      !queryParameters.has('end_date') ||
-      !queryParameters.has('station')
-    ) {
-      this.setState({
-        error: "URL missing required parameters start_date, end_date, or station"
-      });
-      return;
-    }
-
-    return({
-      'startDateString': queryParameters.get('start_date'),
-      'endDateString': queryParameters.get('end_date'),
-      'station': queryParameters.get('station'),
-    });
 }
 
 class Table extends React.Component {
@@ -107,6 +91,18 @@ class Table extends React.Component {
     return rtn;
   }
 
+  // daysPast is an int
+  // daysOfWeek is an array of ints in the range [0,6]
+  // This function returns true if daysPast days from the props.startDate is one
+  // of the days of the week whitelisted in daysOfWeek. The week starts with
+  // Sunday = 0, Monday = 1 ...
+  isDayOfWeek(daysPast, daysOfWeek) {
+    var date = new Date(this.props.startDate.getTime()); // Copy date
+    date.setDate(date.getDate() + daysPast);
+    let dayOfWeek = date.getDay();
+    return (daysOfWeek.indexOf(dayOfWeek) !== -1);
+  }
+
   render() {
     let rows = [
       {
@@ -116,75 +112,55 @@ class Table extends React.Component {
       {
         'name': 'Weekdays',
         'filter': (_dayData, dayIndex) => {
-          var date = new Date(this.props.startDate.getTime()); // Copy startDate
-          date.setDate(date.getDate() + dayIndex);
-          let dayOfWeek = date.getDay();
-          return dayOfWeek > 0 && dayOfWeek < 6;
+          return this.isDayOfWeek(dayIndex, [1,2,3,4,5]);
         },
       },
       {
         'name': 'Weekends',
         'filter': (_dayData, dayIndex) => {
-          var date = new Date(this.props.startDate.getTime()); // Copy startDate
-          date.setDate(date.getDate() + dayIndex);
-          let dayOfWeek = date.getDay();
-          return dayOfWeek === 0 || dayOfWeek === 6;
+          return this.isDayOfWeek(dayIndex, [0, 6]);
         },
       },
       {
         'name': 'Saturdays',
         'filter': (_dayData, dayIndex) => {
-          var date = new Date(this.props.startDate.getTime()); // Copy startDate
-          date.setDate(date.getDate() + dayIndex);
-          return date.getDay() === 6;
+          return this.isDayOfWeek(dayIndex, [6]);
         },
       },
       {
         'name': 'Sundays',
         'filter': (_dayData, dayIndex) => {
-          var date = new Date(this.props.startDate.getTime()); // Copy startDate
-          date.setDate(date.getDate() + dayIndex);
-          return date.getDay() === 0;
+          return this.isDayOfWeek(dayIndex, [0]);
         },
       },
       {
         'name': 'Mondays',
         'filter': (_dayData, dayIndex) => {
-          var date = new Date(this.props.startDate.getTime()); // Copy startDate
-          date.setDate(date.getDate() + dayIndex);
-          return date.getDay() === 1;
+          return this.isDayOfWeek(dayIndex, [1]);
         },
       },
       {
         'name': 'Tuesdays',
         'filter': (_dayData, dayIndex) => {
-          var date = new Date(this.props.startDate.getTime()); // Copy startDate
-          date.setDate(date.getDate() + dayIndex);
-          return date.getDay() === 2;
+          return this.isDayOfWeek(dayIndex, [2]);
         },
       },
       {
         'name': 'Wednesdays',
         'filter': (_dayData, dayIndex) => {
-          var date = new Date(this.props.startDate.getTime()); // Copy startDate
-          date.setDate(date.getDate() + dayIndex);
-          return date.getDay() === 3;
+          return this.isDayOfWeek(dayIndex, [3]);
         },
       },
       {
         'name': 'Thursdays',
         'filter': (_dayData, dayIndex) => {
-          var date = new Date(this.props.startDate.getTime()); // Copy startDate
-          date.setDate(date.getDate() + dayIndex);
-          return date.getDay() === 4;
+          return this.isDayOfWeek(dayIndex, [4]);
         },
       },
       {
         'name': 'Fridays',
         'filter': (_dayData, dayIndex) => {
-          var date = new Date(this.props.startDate.getTime()); // Copy startDate
-          date.setDate(date.getDate() + dayIndex);
-          return date.getDay() === 5;
+          return this.isDayOfWeek(dayIndex, [5]);
         },
       },
     ];
@@ -193,11 +169,18 @@ class Table extends React.Component {
     for (let rowIndex in rows) {
       let row = rows[rowIndex];
       let data = this.props.data.filter(row.filter).reduce(Table.addDays);
-      rowsHtml.push(<Row data={data} name={row.name} key={row.name} />);
+      rowsHtml.push(<TableRow data={data} name={row.name} key={row.name} />);
     }
 
     return(
       <table>
+        <thead>
+          <TableHeader
+            startTime={this.props.startTime}
+            timeStep={this.props.timeStep}
+            endTime={this.props.endTime}
+          />
+        </thead>
         <tbody>
           {rowsHtml}
         </tbody>
@@ -206,7 +189,51 @@ class Table extends React.Component {
   }
 }
 
-class Row extends React.Component {
+class TableHeader extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {};
+  }
+
+  static minutesToTimeString(minutesPastMidnight) {
+    var hours = Math.floor(minutesPastMidnight / 60);
+    let amPm = hours > 11 ? "PM" : "AM";
+    hours = hours % 12;
+    hours = hours == 0 ? 12 : hours;
+    let minutes = minutesPastMidnight % 60;
+    var minutesString = "";
+    if (minutes !== 0) {
+      var minutesString = String(minutes);
+      if (minutesString.length == 1) {
+        minutesString = "0" + minutesString;
+      }
+      minutesString = ":" + minutesString
+    }
+    return String(hours) + minutesString + amPm;
+  }
+
+  render() {
+    var timeLables = [<td key={'label'}>Time of Day</td>]
+    var time = this.props.startTime;
+    while (time < this.props.endTime) {
+      timeLables.push(
+        <td key={time} style={{textAlign: 'center'}}>
+          {TableHeader.minutesToTimeString(time)}
+        </td>
+      );
+      time += this.props.timeStep;
+    }
+
+    // TODO make header sticky
+    return (
+      <tr>
+        {timeLables}
+      </tr>
+    );
+  }
+}
+
+class TableRow extends React.Component {
   constructor(props) {
     super(props);
     this.state = {};
@@ -216,7 +243,9 @@ class Row extends React.Component {
     return (
       <tr>
         <td>{this.props.name}</td>
-        {this.props.data.map((cellData, index) => <TableCell key={index} data={cellData} />)}
+        {this.props.data.map(
+          (cellData, index) => <TableCell key={index} data={cellData} />
+        )}
       </tr>
     );
   }
@@ -235,39 +264,75 @@ class TableCell extends React.Component {
     let empty = data.hasOwnProperty('empty') ? data['empty'] : 0;
     let total = available + low + empty;
 
-    let height = 100;
-    let width = 50;
-    let availableHeight = 100 * available / total;
-    let lowHeight = 100 * low / total;
-    let emptyHeight = 100 * empty / total;
+    let height = 80;
+    let width = 40;
+    let availableHeight = height * available / total;
+    let lowHeight = height * low / total;
+    let emptyHeight = height * empty / total;
 
-    // TODO absolute position them because there is weird padding
     return (
       <td>
         <div style={{
-          display: 'inline-block',
+          position: 'relative',
           width: width + 'px',
-          height: emptyHeight + 'px',
-          backgroundColor: 'red',
-        }} />
-        <div style={{
-          display: 'inline-block',
-          width: width + 'px',
-          height: lowHeight + 'px',
-          backgroundColor: 'yellow',
-        }} />
-        <div style={{
-          display: 'inline-block',
-          width: width + 'px',
-          height: availableHeight + 'px',
-          backgroundColor: 'green',
-        }} />
+          height: height + 'px',
+        }}>
+          <div style={{
+            position: 'absolute',
+            top: '0px',
+            display: 'inline-block',
+            width: width + 'px',
+            height: emptyHeight + 'px',
+            backgroundColor: '#FF2D55',
+          }} />
+          <div style={{
+            position: 'absolute',
+            top: emptyHeight + 'px',
+            display: 'inline-block',
+            width: width + 'px',
+            height: lowHeight + 'px',
+            backgroundColor: '#FFCC00',
+          }} />
+          <div style={{
+            position: 'absolute',
+            top: (emptyHeight + lowHeight) + 'px',
+            display: 'inline-block',
+            width: width + 'px',
+            height: availableHeight + 'px',
+            backgroundColor: '#4cd964',
+          }} />
+        </div>
       </td>
     );
   }
 }
 
+function getValuesFromQueryParameters() {
+    let queryParameters = new URLSearchParams(window.location.search);
+
+    if (
+      !queryParameters.has('start_date') ||
+      !queryParameters.has('end_date') ||
+      !queryParameters.has('station')
+    ) {
+      this.setState({
+        error: "URL missing required parameters start_date, end_date, or station"
+      });
+      return;
+    }
+
+    return({
+      'startDateString': queryParameters.get('start_date'),
+      'endDateString': queryParameters.get('end_date'),
+      'station': queryParameters.get('station'),
+      'startTime': 360, // 6am. TODO make this a query parameter
+      'endTime': 1440, // midnight. TODO make this a query parameter
+      'timeStep': 60, // 1 hour. TODO make this a query parameter
+      'stationType': 'bike', // as opposed to 'dock'. TODO make this a q param
+    });
+}
+
 ReactDOM.render(
-  <Site queryParameters={getValuesFromQueryParameters()} />,
+  <Site {...getValuesFromQueryParameters()} />,
   document.getElementById('root')
 );
