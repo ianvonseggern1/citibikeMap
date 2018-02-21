@@ -562,15 +562,21 @@ class stationGraphController {
 
   // This adds a button to show the last five weekdays on the infowindow detail graph
   // We only offer a comparison if it's a weekday
+  // No matter what adds a link to more station details
   showComparisonLinkIfNecessary() {
-    if (!isWeekday(this.mapController.date)) {
-      return;
+    var moreDetailsLink = "https://ianv.me/citibikeDayMap/stationSpecific/index.html";
+    moreDetailsLink += "?station=" + this.mapController.selected_station;
+    moreDetailsLink += "&start_date=2017-10-1";
+    var yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    moreDetailsLink += "&end_date=" + dateToString(yesterday, '-');
+    var linksHtml = "<a href='" + moreDetailsLink + "' target='_blank'>More Details</a>   ";
+    if (isWeekday(this.mapController.date)) {
+      linksHtml += "<a href='#' onclick='map.stationGraphController.overlayPreviousDaysOnGraph();'>Compare with last 5 weekdays</a>";
     }
 
     $( "#overlayPreviousDaysLink" ).empty();
-    $( "#overlayPreviousDaysLink" ).append(
-      "<a href='#' onclick='map.stationGraphController.overlayPreviousDaysOnGraph();'>Compare with last 5 weekdays</a>"
-    );
+    $( "#overlayPreviousDaysLink" ).append(linksHtml);
   }
 
   convertMinutesAfterMidnightToDate(minutes) {
