@@ -199,7 +199,11 @@ class TableHeader extends React.Component {
     var time = this.props.startTime;
     while (time < this.props.endTime) {
       timeLables.push(
-        <td key={time} style={{textAlign: 'center'}}>
+        <td key={time} style={{
+          textAlign: 'center',
+          fontSize: 'small',
+          fontFamily: 'monospace',
+        }}>
           {TableHeader.minutesToTimeString(time)}
         </td>
       );
@@ -251,6 +255,7 @@ class TableCell extends React.Component {
     let availableHeight = height * available / total;
     let lowHeight = height * low / total;
     let emptyHeight = height * empty / total;
+    let padding = 25;
 
     return (
       <td>
@@ -258,10 +263,12 @@ class TableCell extends React.Component {
           position: 'relative',
           width: width + 'px',
           height: height + 'px',
+          paddingTop: padding + 'px',
+          paddingBottom: padding + 'px',
         }}>
           <div style={{
             position: 'absolute',
-            top: '0px',
+            top: padding + 'px',
             display: 'inline-block',
             width: width + 'px',
             height: emptyHeight + 'px',
@@ -269,7 +276,7 @@ class TableCell extends React.Component {
           }} />
           <div style={{
             position: 'absolute',
-            top: emptyHeight + 'px',
+            top: (padding + emptyHeight) + 'px',
             display: 'inline-block',
             width: width + 'px',
             height: lowHeight + 'px',
@@ -277,7 +284,7 @@ class TableCell extends React.Component {
           }} />
           <div style={{
             position: 'absolute',
-            top: (emptyHeight + lowHeight) + 'px',
+            top: (padding + emptyHeight + lowHeight) + 'px',
             display: 'inline-block',
             width: width + 'px',
             height: availableHeight + 'px',
