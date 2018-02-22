@@ -151,11 +151,20 @@ class Table extends React.Component {
     for (let rowIndex in rows) {
       let row = rows[rowIndex];
       let data = this.props.data.filter(row.filter).reduce(Table.addDays);
-      rowsHtml.push(<TableRow data={data} name={row.name} key={row.name} />);
+      rowsHtml.push(
+        <TableRow
+          data={data}
+          name={row.name}
+          key={row.name}
+          type={this.props.stationType}
+          startTime={this.props.startTime}
+          timeStep={this.props.timeStep}
+        />
+      );
     }
 
     return(
-      <table>
+      <table style={{paddingRight: '300px'}}>
         <thead>
           <TableHeader
             startTime={this.props.startTime}
@@ -177,23 +186,6 @@ class TableHeader extends React.Component {
     this.state = {};
   }
 
-  static minutesToTimeString(minutesPastMidnight) {
-    var hours = Math.floor(minutesPastMidnight / 60);
-    let amPm = hours > 11 ? "PM" : "AM";
-    hours = hours % 12;
-    hours = hours == 0 ? 12 : hours;
-    let minutes = minutesPastMidnight % 60;
-    var minutesString = "";
-    if (minutes !== 0) {
-      var minutesString = String(minutes);
-      if (minutesString.length == 1) {
-        minutesString = "0" + minutesString;
-      }
-      minutesString = ":" + minutesString
-    }
-    return String(hours) + minutesString + amPm;
-  }
-
   render() {
     var timeLables = [<td key={'label'}>Time of Day</td>]
     var time = this.props.startTime;
@@ -204,7 +196,7 @@ class TableHeader extends React.Component {
           fontSize: 'small',
           fontFamily: 'monospace',
         }}>
-          {TableHeader.minutesToTimeString(time)}
+          {minutesToTimeString(time)}
         </td>
       );
       time += this.props.timeStep;
@@ -230,7 +222,19 @@ class TableRow extends React.Component {
       <tr>
         <td>{this.props.name}</td>
         {this.props.data.map(
-          (cellData, index) => <TableCell key={index} data={cellData} />
+          (cellData, index) => {
+            let startTime = this.props.startTime + this.props.timeStep * index;
+            let endTime = this.props.startTime + this.props.timeStep * (index + 1);
+            return (
+              <TableCell
+                key={index}
+                data={cellData}
+                type={this.props.type}
+                startTime={startTime}
+                endTime={endTime}
+              />
+            );
+          }
         )}
       </tr>
     );
@@ -240,7 +244,7 @@ class TableRow extends React.Component {
 class TableCell extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {showTooltip: false};
   }
 
   render() {
@@ -252,10 +256,31 @@ class TableCell extends React.Component {
 
     let height = 80;
     let width = 40;
-    let availableHeight = height * available / total;
-    let lowHeight = height * low / total;
-    let emptyHeight = height * empty / total;
     let padding = 25;
+
+    let barInfo = [
+      {color: '#FF2D55', count: empty, description: '0'},
+      {color: '#FFCC00', count: low, description: '1-2'},
+      {color: '#4cd964', count: available, description: '3+'},
+    ];
+    var currentTop = padding;
+    var barDivs = [];
+    barInfo.forEach((bar) => {
+      let barHeight = (height * bar.count / total);
+      barDivs.push(
+        <BarGraphSegment
+          {...bar}
+          height = {barHeight}
+          width = {width}
+          top = {currentTop}
+          total = {total}
+          type = {this.props.type}
+          startTime = {this.props.startTime}
+          endTime = {this.props.endTime}
+        />
+      );
+      currentTop += barHeight;
+    });
 
     return (
       <td>
@@ -266,34 +291,96 @@ class TableCell extends React.Component {
           paddingTop: padding + 'px',
           paddingBottom: padding + 'px',
         }}>
-          <div style={{
-            position: 'absolute',
-            top: padding + 'px',
-            display: 'inline-block',
-            width: width + 'px',
-            height: emptyHeight + 'px',
-            backgroundColor: '#FF2D55',
-          }} />
-          <div style={{
-            position: 'absolute',
-            top: (padding + emptyHeight) + 'px',
-            display: 'inline-block',
-            width: width + 'px',
-            height: lowHeight + 'px',
-            backgroundColor: '#FFCC00',
-          }} />
-          <div style={{
-            position: 'absolute',
-            top: (padding + emptyHeight + lowHeight) + 'px',
-            display: 'inline-block',
-            width: width + 'px',
-            height: availableHeight + 'px',
-            backgroundColor: '#4cd964',
-          }} />
+          {barDivs}
         </div>
       </td>
     );
   }
+}
+
+class BarGraphSegment extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {showTooltip: false};
+
+    // Bind this to callbacks
+    this.mouseEnter = this.mouseEnter.bind(this);
+    this.mouseExit = this.mouseExit.bind(this);
+  }
+
+  mouseEnter() {
+    this.setState({showTooltip: true});
+  }
+
+  mouseExit() {
+    this.setState({showTooltip: false});
+  }
+
+  render() {
+    var tooltip = null;
+    if (this.state.showTooltip) {
+      let percent = Math.round(100 * this.props.count / this.props.total);
+      let startTime = minutesToTimeString(this.props.startTime);
+      let endTime = minutesToTimeString(this.props.endTime);
+
+      tooltip = (
+        <div style={{
+          position: 'absolute',
+          top: (this.props.top + this.props.height) + 'px',
+          width: '300px',
+          zIndex: 2,
+          backgroundColor: 'lightgray',
+          borderRadius: '5px',
+          paddingLeft: '5px',
+          left: this.props.width + 'px',
+        }}>
+          <p>
+            {
+              percent + '% (' + this.props.count + ' of ' + this.props.total +
+              ') of the time there are ' + this.props.description + ' ' +
+              this.props.type + 's available from ' + startTime + ' to ' +
+              endTime
+            }
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div>
+        <div
+          onMouseEnter={this.mouseEnter}
+          onMouseLeave={this.mouseExit}
+          key={this.props.description}
+          style={{
+            position: 'absolute',
+            top: this.props.top + 'px',
+            display: 'inline-block',
+            width: this.props.width + 'px',
+            height: this.props.height + 'px',
+            backgroundColor: this.props.color,
+          }} />,
+        {tooltip}
+      </div>
+    );
+  }
+}
+
+function minutesToTimeString(minutesPastMidnight) {
+  var hours = Math.floor(minutesPastMidnight / 60);
+  let amPm = hours > 11 ? "PM" : "AM";
+  hours = hours % 12;
+  hours = hours == 0 ? 12 : hours;
+  let minutes = minutesPastMidnight % 60;
+  var minutesString = "";
+  if (minutes !== 0) {
+    var minutesString = String(minutes);
+    if (minutesString.length == 1) {
+      minutesString = "0" + minutesString;
+    }
+    minutesString = ":" + minutesString
+  }
+  return String(hours) + minutesString + amPm;
 }
 
 function getValuesFromQueryParameters() {
@@ -304,6 +391,7 @@ function getValuesFromQueryParameters() {
       !queryParameters.has('end_date') ||
       !queryParameters.has('station')
     ) {
+      // TODO move error to props instead
       this.setState({
         error: "URL missing required parameters start_date, end_date, or station"
       });
