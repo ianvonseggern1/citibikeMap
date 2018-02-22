@@ -23,7 +23,11 @@ class Site extends React.Component {
     ajaxUrl += "&step=" + this.props.timeStep;
 
     $.ajax({ url: ajaxUrl, success: (result) => {
-      this.setState({isLoading: false, data: result});
+      this.setState({
+        isLoading: false,
+        data: result.data,
+        stationMetadata: result.stationInfo,
+      });
     }});
   }
 
@@ -224,7 +228,7 @@ class TableRow extends React.Component {
         {this.props.data.map(
           (cellData, index) => {
             let startTime = this.props.startTime + this.props.timeStep * index;
-            let endTime = this.props.startTime + this.props.timeStep * (index + 1);
+            let endTime = startTime + this.props.timeStep;
             return (
               <TableCell
                 key={index}
