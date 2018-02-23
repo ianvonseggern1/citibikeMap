@@ -26,7 +26,7 @@ class Site extends React.Component {
       this.setState({
         isLoading: false,
         data: result.data,
-        stationMetadata: result.stationInfo,
+        stationInfo: result.stationInfo,
       });
     }});
   }
@@ -52,13 +52,21 @@ class Site extends React.Component {
       endDateParts[1],
       endDateParts[2],
     );
+
+    let title = (this.state.stationInfo != null)
+      ? this.state.stationInfo.name
+      : null;
+
     return (
-      <Table
-        data={this.state.data}
-        startDate={startDate}
-        endDate={endDate}
-        {...this.props}
-      />
+      <React.Fragment>
+        <h1>{title}</h1>
+        <Table
+          data={this.state.data}
+          startDate={startDate}
+          endDate={endDate}
+          {...this.props}
+        />
+      </React.Fragment>
     );
   }
 }
