@@ -176,18 +176,14 @@ class Table extends React.Component {
     }
 
     return(
-      <table style={{paddingRight: '300px'}}>
-        <thead>
-          <TableHeader
-            startTime={this.props.startTime}
-            timeStep={this.props.timeStep}
-            endTime={this.props.endTime}
-          />
-        </thead>
-        <tbody>
-          {rowsHtml}
-        </tbody>
-      </table>
+      <div id='table_container'>
+        <TableHeader
+          startTime={this.props.startTime}
+          timeStep={this.props.timeStep}
+          endTime={this.props.endTime}
+        />
+        {rowsHtml}
+      </div>
     );
   }
 }
@@ -195,65 +191,133 @@ class Table extends React.Component {
 class TableHeader extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {scrollX: 0, scrollY: 0};
+
+    // bind this
+    this.handleScroll = this.handleScroll.bind(this);
+  }
+
+  componentDidMount() {
+      window.addEventListener('scroll', this.handleScroll);
+  }
+
+  componentWillUnmount() {
+      window.removeEventListener('scroll', this.handleScroll);
+  }
+
+  handleScroll() {
+    this.setState({scrollX: window.scrollX, scrollY: window.scrollY});
   }
 
   render() {
-    var timeLables = [<td key={'label'}>Time of Day</td>]
+    var timeLables = [
+      <span id='header_label' style={{
+        width: TableRow.ROW_NAME_WIDTH + 'px',
+        display: 'inline-block',
+      }}>
+        Time of Day
+      </span>,
+    ];
     var time = this.props.startTime;
     while (time < this.props.endTime) {
       timeLables.push(
-        <td key={time} style={{
+        <span key={time} style={{
           textAlign: 'center',
           fontSize: 'small',
           fontFamily: 'monospace',
+          display: 'inline-block',
+          width: TableCell.width + 'px',
+          padding: '10px ' + TableCell.horizontalPadding + 'px',
         }}>
           {minutesToTimeString(time)}
-        </td>
+        </span>
       );
       time += this.props.timeStep;
     }
 
-    // TODO make header sticky
+    var stickyHeaderPosition = 'relative';
+    let stickyTop = 0;
+    var stickyLeft = 0;
+    var dummyDiv = null;
+    if (this.state.scrollY > 80) {
+      stickyHeaderPosition = 'fixed';
+      stickyLeft = -1 * this.state.scrollX + 8;
+      let dummyDivHeight = 44; // TODO still jumps a a bit, would be nice to fix
+      dummyDiv = <div style={{height: dummyDivHeight}}></div>;
+    }
+
     return (
-      <tr>
-        {timeLables}
-      </tr>
+      <React.Fragment>
+        {dummyDiv}
+        <div id='table_header' onScroll={this.didScroll} style={{
+          width: TableRow.rowWidth(timeLables.length),
+          backgroundColor: 'lightblue',
+          zIndex: 2,
+          top: stickyTop,
+          left: stickyLeft,
+          position: stickyHeaderPosition,
+        }}>
+          {timeLables}
+        </div>
+      </React.Fragment>
     );
   }
 }
 
 class TableRow extends React.Component {
+  static ROW_NAME_WIDTH = 90;
+
   constructor(props) {
     super(props);
     this.state = {};
   }
 
+  static rowWidth(cellCount) {
+    let cellWidth = (TableCell.width + 2 * TableCell.horizontalPadding);
+    return cellCount * cellWidth + TableRow.ROW_NAME_WIDTH;
+  }
+
   render() {
+    let cells = this.props.data.map(
+      (cellData, index) => {
+        let startTime = this.props.startTime + this.props.timeStep * index;
+        let endTime = startTime + this.props.timeStep;
+        return (
+          <TableCell
+            key={index}
+            data={cellData}
+            type={this.props.type}
+            startTime={startTime}
+            endTime={endTime}
+          />
+        );
+    });
+
+    // 300 is extra room for the tooltip TODO make more elegant
     return (
-      <tr>
-        <td>{this.props.name}</td>
-        {this.props.data.map(
-          (cellData, index) => {
-            let startTime = this.props.startTime + this.props.timeStep * index;
-            let endTime = startTime + this.props.timeStep;
-            return (
-              <TableCell
-                key={index}
-                data={cellData}
-                type={this.props.type}
-                startTime={startTime}
-                endTime={endTime}
-              />
-            );
-          }
-        )}
-      </tr>
+      <div id='table_row' style={{
+        width: (TableRow.rowWidth(cells.length) + 300) + 'px',
+      }}>
+        <span id='row_name' style={{
+          width: TableRow.ROW_NAME_WIDTH + 'px',
+          display: 'inline-block',
+          float: 'left',
+          paddingTop: '50px',
+        }}>
+          {this.props.name}
+        </span>
+        {cells}
+      </div>
     );
   }
 }
 
 class TableCell extends React.Component {
+  static height = 80;
+  static width = 40;
+  static verticalPadding = 25;
+  static horizontalPadding = 2;
+
   constructor(props) {
     super(props);
     this.state = {showTooltip: false};
@@ -266,24 +330,19 @@ class TableCell extends React.Component {
     let empty = data.hasOwnProperty('empty') ? data['empty'] : 0;
     let total = available + low + empty;
 
-    let height = 80;
-    let width = 40;
-    let padding = 25;
-
     let barInfo = [
       {color: '#FF2D55', count: empty, description: '0'},
       {color: '#FFCC00', count: low, description: '1-2'},
       {color: '#4cd964', count: available, description: '3+'},
     ];
-    var currentTop = padding;
+    var currentTop = 0;
     var barDivs = [];
     barInfo.forEach((bar) => {
-      let barHeight = (height * bar.count / total);
+      let barHeight = (TableCell.height * bar.count / total);
       barDivs.push(
         <BarGraphSegment
           {...bar}
           height = {barHeight}
-          width = {width}
           top = {currentTop}
           total = {total}
           type = {this.props.type}
@@ -294,18 +353,22 @@ class TableCell extends React.Component {
       currentTop += barHeight;
     });
 
+    let cssPaddingString = TableCell.verticalPadding + 'px ';
+    cssPaddingString += TableCell.horizontalPadding + 'px'
+
     return (
-      <td>
-        <div style={{
+      <div id='table_cell' style={{
+        width: TableCell.width + 'px',
+        height: TableCell.height + 'px',
+        padding: cssPaddingString,
+        display: 'inline-block',
+      }}>
+        <div id='bar_segments_wrapper' style={{
           position: 'relative',
-          width: width + 'px',
-          height: height + 'px',
-          paddingTop: padding + 'px',
-          paddingBottom: padding + 'px',
         }}>
           {barDivs}
         </div>
-      </td>
+      </div>
     );
   }
 }
@@ -336,7 +399,7 @@ class BarGraphSegment extends React.Component {
       let endTime = minutesToTimeString(this.props.endTime);
 
       tooltip = (
-        <div style={{
+        <div id='tooltip' style={{
           position: 'absolute',
           top: (this.props.top + this.props.height) + 'px',
           width: '300px',
@@ -359,8 +422,9 @@ class BarGraphSegment extends React.Component {
     }
 
     return (
-      <div>
+      <React.Fragment>
         <div
+          id='bar_segment'
           onMouseEnter={this.mouseEnter}
           onMouseLeave={this.mouseExit}
           key={this.props.description}
@@ -368,12 +432,12 @@ class BarGraphSegment extends React.Component {
             position: 'absolute',
             top: this.props.top + 'px',
             display: 'inline-block',
-            width: this.props.width + 'px',
+            width: TableCell.width + 'px',
             height: this.props.height + 'px',
             backgroundColor: this.props.color,
-          }} />,
+          }} />
         {tooltip}
-      </div>
+      </React.Fragment>
     );
   }
 }
