@@ -250,7 +250,7 @@ class TableHeader extends React.Component {
       <React.Fragment>
         {dummyDiv}
         <div id='table_header' onScroll={this.didScroll} style={{
-          width: TableRow.rowWidth(timeLables.length),
+          width: TableRow.rowWidth(timeLables.length - 1),
           backgroundColor: 'lightblue',
           zIndex: 2,
           top: stickyTop,
