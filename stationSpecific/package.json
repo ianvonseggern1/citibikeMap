@@ -1,0 +1,25 @@
+{
+  "name": "stationSpecific",
+  "version": "1.0.0",
+  "main": "main.js",
+  "author": "Ian Vonseggern",
+  "license": "MIT",
+  "dependencies": {
+    "babel-preset-stage-0": "^6.24.1",
+    "babel-register": "^6.26.0",
+    "file-loader": "^1.1.10",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.3",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "webpack": "^4.0.1",
+    "webpack-cli": "^2.0.9"
+  },
+  "scripts": {
+    "build": "webpack --display-error-details -p"
+  }
+}
