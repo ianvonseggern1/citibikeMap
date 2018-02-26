@@ -48,7 +48,7 @@ class CitibikeHistoricalMapController {
 
     this.getValuesFromQueryParameters();
     this.setupPickers();
-    this.setupTooltips();
+    this.setupCountTooltips();
     this.refreshTimestamp(this.minutes_past_midnight);
   }
 
@@ -75,7 +75,7 @@ class CitibikeHistoricalMapController {
     }
   }
 
-  setupTooltips() {
+  setupCountTooltips() {
     let countElements = ["#availableCount", "#lowCount", "#emptyCount"];
     let elementDescriptions = ["3+", "1-2", "no"];
 
@@ -385,21 +385,26 @@ class CitibikeHistoricalMapController {
 
     svg.append("path")
     .data([data])
+    .attr("id", "emptyLine")
     .attr("class", "line")
     .attr("stroke-width", 2)
     .attr("stroke", '#FF2D55')
     .attr("fill", "none")
     .attr("d", emptyLine(data));
 
+
     svg.append("path")
     .data([data])
     .attr("class", "area")
     .attr("fill", '#FF2D55')
     .attr("fill-opacity", 0.5)
-    .attr("d", emptyArea);
+    .attr("d", emptyArea)
+    .on("mouseover", this.mouseOverHeatmap.bind(this, "#emptyLine"))
+    .on("mouseout", this.mouseOutHeatmap.bind(this, "#emptyLine"));
 
     svg.append("path")
     .data([data])
+    .attr("id", "lowLine")
     .attr("class", "line")
     .attr("stroke-width", 2)
     .attr("stroke", '#FFCC00')
@@ -411,7 +416,31 @@ class CitibikeHistoricalMapController {
     .attr("class", "area")
     .attr("fill", '#FFCC00')
     .attr("fill-opacity", 0.5)
-    .attr("d", lowArea);
+    .attr("d", lowArea)
+    .on("mouseover", this.mouseOverHeatmap.bind(this, "#lowLine"))
+    .on("mouseout", this.mouseOutHeatmap.bind(this, "#lowLine"));
+  }
+
+  mouseOverHeatmap(element) {
+    d3.select(element).attr("stroke-width", 4);
+
+    // Setup tooltip
+    let countText = (element === "#lowLine") ? "less than 3 " : "0 ";
+    var text = "Number of stations with " + countText + this.type + "s available over time";
+    $( "#heatmapTooltip" ).text(text);
+
+    let dotId = element === "#lowLine" ? "#heatmapLowDot" : "#heatmapEmptyDot";
+    var dotLocation = $(dotId).position();
+    $( "#heatmapTooltip" ).show();
+    dotLocation.top -= ($( "#heatmapTooltip" ).outerHeight() + 10);
+    dotLocation.left -= 150;
+
+    $( "#heatmapTooltip" ).css(dotLocation);
+  }
+
+  mouseOutHeatmap(element) {
+    d3.select(element).attr("stroke-width", 2);
+    $( "#heatmapTooltip" ).hide();
   }
 
   placeHeatmapDots(time) {
