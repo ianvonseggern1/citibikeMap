@@ -58,10 +58,10 @@ export default class BarGraphSegment extends React.Component {
         }}>
           <p>
             {
-              percent + '% (' + this.props.count + ' of ' + this.props.total +
-              ') of the time there are ' + this.props.description + ' ' +
-              this.props.type + 's available from ' + startTime + ' to ' +
-              endTime
+              percent + '% of the time there are ' + this.props.description +
+              ' ' + this.props.type + 's available from ' + startTime + ' to ' +
+              endTime + ' (' + this.props.count + ' of ' + this.props.total +
+              ' samples)'
             }
           </p>
         </div>
