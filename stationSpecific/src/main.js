@@ -13,7 +13,9 @@ class Site extends React.Component {
   }
 
   componentDidMount() {
-    this.fetchData();
+    if (!this.props.error) {
+      this.fetchData();
+    }
   }
 
   fetchData() {
@@ -36,8 +38,8 @@ class Site extends React.Component {
   }
 
   render() {
-    if (this.state.error) {
-      return (<p>{this.state.error}</p>);
+    if (this.props.error) {
+      return (<p>{this.props.error}</p>);
     }
 
     if (this.state.isLoading) {
@@ -78,46 +80,39 @@ class Site extends React.Component {
 
 function getValuesFromQueryParameters() {
   let queryParameters = new URLSearchParams(window.location.search);
+  var values = {};
 
   if (
     !queryParameters.has('start_date') ||
     !queryParameters.has('end_date') ||
     !queryParameters.has('station')
   ) {
-    // TODO move this to props
-    this.setState({
-      error: "URL missing required parameters start_date, end_date, or station"
-    });
-    return;
+    values.error = "URL missing required parameters start_date, end_date, or station";
+    return values;
   }
 
-  var startTime = queryParameters.get('start_time');
-  if (startTime === null) {
-    startTime = 360; // 6am
+  values.startDateString = queryParameters.get('start_date');
+  values.endDateString = queryParameters.get('end_date');
+  values.station = queryParameters.get('station');
+
+  values.startTime = queryParameters.get('start_time');
+  if (values.startTime === null) {
+    values.startTime = 360; // 6am
   }
-  var endTime = queryParameters.get('end_time');
-  if (endTime === null) {
-    endTime = 1440; // midnight
+  values.endTime = queryParameters.get('end_time');
+  if (values.endTime === null) {
+    values.endTime = 1440; // midnight
   }
-  var timeStep = queryParameters.get('time_step');
-  if (timeStep === null) {
-    timeStep = 60; // 1 hour
+  values.timeStep = queryParameters.get('time_step');
+  if (values.timeStep === null) {
+    values.timeStep = 60; // 1 hour
   }
-  var stationType = queryParameters.get('station_type');
-  if (stationType === null) {
-    stationType = 'bike'; // as opposed to 'dock'
+  values.stationType = queryParameters.get('station_type');
+  if (values.stationType === null) {
+    values.stationType = 'bike'; // as opposed to 'dock'
   }
 
-
-  return({
-    'startDateString': queryParameters.get('start_date'),
-    'endDateString': queryParameters.get('end_date'),
-    'station': queryParameters.get('station'),
-    'startTime': startTime,
-    'endTime': endTime,
-    'timeStep': timeStep,
-    'stationType': stationType,
-  });
+  return values;
 }
 
 ReactDOM.render(
