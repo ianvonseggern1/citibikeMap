@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import "babel-register";
+import $ from 'jquery';
 
 import TableHeader from './tableHeader.js';
 import TableRow from './tableRow.js';
