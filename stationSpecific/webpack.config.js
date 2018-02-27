@@ -7,7 +7,7 @@ module.exports = {
 	filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['.js']
+        extensions: ['.js', '.css', '.scss']
     },
     module: {
 	rules: [
@@ -17,6 +17,14 @@ module.exports = {
 	             loader: 'babel-loader',
 	             options: { presets: ['react', 'es2015', 'stage-0'] }
                 }
+	    },
+            {
+                test: /\.css$/,
+                use: 'css-loader'
+            },
+            {
+                test: /\.scss$/,
+                use: 'sass-loader'
 	    }
         ]
     }

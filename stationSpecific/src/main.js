@@ -49,13 +49,13 @@ class Site extends React.Component {
     let startDateParts = this.props.startDateString.split('-');
     let startDate = new Date(
       startDateParts[0],
-      startDateParts[1],
+      startDateParts[1] - 1,
       startDateParts[2],
     );
     let endDateParts = this.props.endDateString.split('-');
     let endDate = new Date(
       endDateParts[0],
-      endDateParts[1],
+      endDateParts[1] - 1,
       endDateParts[2],
     );
 
@@ -66,7 +66,7 @@ class Site extends React.Component {
     return (
       <React.Fragment>
         <h1>{title}</h1>
-        <Options {...this.props} />
+        <Options startDate={startDate} endDate={endDate} {...this.props} />
         <Table
           data={this.state.data}
           startDate={startDate}
@@ -95,16 +95,16 @@ function getValuesFromQueryParameters() {
   values.endDateString = queryParameters.get('end_date');
   values.station = queryParameters.get('station');
 
-  values.startTime = queryParameters.get('start_time');
-  if (values.startTime === null) {
+  values.startTime = parseInt(queryParameters.get('start_time'));
+  if (isNaN(values.startTime)) {
     values.startTime = 360; // 6am
   }
-  values.endTime = queryParameters.get('end_time');
-  if (values.endTime === null) {
+  values.endTime = parseInt(queryParameters.get('end_time'));
+  if (isNaN(values.endTime)) {
     values.endTime = 1440; // midnight
   }
-  values.timeStep = queryParameters.get('time_step');
-  if (values.timeStep === null) {
+  values.timeStep = parseInt(queryParameters.get('time_step'));
+  if (isNaN(values.timeStep)) {
     values.timeStep = 60; // 1 hour
   }
   values.stationType = queryParameters.get('station_type');
