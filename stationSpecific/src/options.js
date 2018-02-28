@@ -116,14 +116,6 @@ export default class Options extends React.Component {
       return <option value={x}>{minutesToTimeDuration(x)}</option>;
     });
 
-    // TODO fix server side, bucket size seems broken
-    //<span style={{display: "flex", flexDirection: "column"}}>
-    //  {"Bucket Size"}
-    //  <select value={this.state.timeStep} onChange={this.handleTimeStepSelect}>
-    //    {timeStepOptions}
-    //  </select>
-    //</span>
-
     return (
       <React.Fragment>
         <p onClick={this.clicked}>{"+ Options"}</p>
@@ -150,6 +142,12 @@ export default class Options extends React.Component {
               selected={this.state.endDate}
               onChange={this.handleEndDateChange}
             />
+          </span>
+          <span style={{display: "flex", flexDirection: "column"}}>
+           {"Bucket Size"}
+           <select value={this.state.timeStep} onChange={this.handleTimeStepSelect}>
+             {timeStepOptions}
+           </select>
           </span>
           <span style={{display: "flex", flexDirection: "column"}}>
             {"Daily Start Time"}

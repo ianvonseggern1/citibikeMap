@@ -9,7 +9,7 @@ import TableCell from './tableCell.js';
 // TODO move to centralized helper function class
 function minutesToTimeString(minutesPastMidnight) {
   var hours = Math.floor(minutesPastMidnight / 60);
-  let amPm = hours > 11 ? "PM" : "AM";
+  let amPm = hours > 11 ? "pm" : "am";
   hours = hours % 12;
   hours = hours == 0 ? 12 : hours;
   let minutes = minutesPastMidnight % 60;
@@ -59,7 +59,7 @@ export default class TableHeader extends React.Component {
       timeLables.push(
         <span key={time} style={{
           textAlign: 'center',
-          fontSize: 'small',
+          fontSize: 'x-small',
           fontFamily: 'monospace',
           display: 'inline-block',
           width: TableCell.width + 'px',
