@@ -103,7 +103,20 @@ export default class Options extends React.Component {
 
   render() {
     if (this.state.collapsed) {
-      return <p onClick={this.clicked}>{"- Options"}</p>;
+      return (
+        <p onClick={this.clicked}>
+          <span style={{
+            width: 0,
+            height: 0,
+            borderTop: "12px solid transparent",
+            borderBottom: "12px solid transparent",
+            borderLeft: "16px solid dimgray",
+            display: "inline-block",
+            marginRight: 8,
+            verticalAlign: "middle"
+          }} />
+          Options
+        </p>);
     }
 
     let timeOptions = [];
@@ -118,17 +131,34 @@ export default class Options extends React.Component {
 
     return (
       <React.Fragment>
-        <p onClick={this.clicked}>{"+ Options"}</p>
-        <form onSubmit={this.submit} style={{
+        <p onClick={this.clicked}>
+          <span style={{
+            width: 0,
+            height: 0,
+            borderLeft: "12px solid transparent",
+            borderRight: "12px solid transparent",
+            borderTop: "16px solid dimgray",
+            display: "inline-block",
+            marginRight: 8,
+            verticalAlign: "middle"
+          }} />
+          Options
+        </p>
+        <form id="optionsForm" onSubmit={this.submit} style={{
           display: "flex",
           flexDirection: "row",
           alignItems: "flex-end",
-          padding: 10
+          margin: 10,
+          width: "max-content",
+          backgroundColor: "lightgray",
+          borderRadius: 5
         }}>
-          <select value={this.state.type} onChange={this.handleTypeSelect}>
-            <option value="bike">Bike Availability</option>
-            <option value="dock">Dock Availability</option>
-          </select>
+          <span>
+            <select value={this.state.type} onChange={this.handleTypeSelect}>
+              <option value="bike">Bike Availability</option>
+              <option value="dock">Dock Availability</option>
+            </select>
+          </span>
           <span style={{display: "flex", flexDirection: "column"}}>
             {"Start Date"}
             <DatePicker
@@ -161,7 +191,9 @@ export default class Options extends React.Component {
               {timeOptions.slice(1)} // Exclude first midnight
             </select>
           </span>
-          <input type="submit" value="Go" />
+          <span>
+            <input type="submit" value="Go" />
+          </span>
         </form>
       </React.Fragment>
     );
