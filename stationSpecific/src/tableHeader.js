@@ -1,8 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import "babel-register";
+import $ from 'jquery';
 
-// Only imported for there constants, perhaps we move these to a seperate file
+// Only imported for their constants, perhaps we move these to a seperate file
 import TableRow from './tableRow.js';
 import TableCell from './tableCell.js';
 
@@ -46,9 +47,11 @@ export default class TableHeader extends React.Component {
   }
 
   render() {
+    let leftPadding = 4
     var timeLables = [
       <span id='header_label' style={{
-        width: TableRow.ROW_NAME_WIDTH + 'px',
+        paddingLeft: leftPadding,
+        width: TableRow.ROW_NAME_WIDTH - leftPadding,
         display: 'inline-block',
       }}>
         Time of Day
@@ -75,16 +78,24 @@ export default class TableHeader extends React.Component {
     let stickyTop = 0;
     var stickyLeft = 0;
     var dummyDiv = null;
-    if (this.state.scrollY > 80) {
+
+    // We use the location of the dummy div to figure out where the header
+    // would be if it was relatively positioned
+    var minYForTableHeader = 80;
+    if ($("#dummy_header_div").offset()) {
+      minYForTableHeader = $("#dummy_header_div").offset().top;
+    }
+
+    var dummyDivHeight = 0;
+    if (this.state.scrollY >= minYForTableHeader) {
       stickyHeaderPosition = 'fixed';
       stickyLeft = -1 * this.state.scrollX + 8;
-      let dummyDivHeight = 44; // TODO still jumps a a bit, would be nice to fix
-      dummyDiv = <div style={{height: dummyDivHeight}}></div>;
+      dummyDivHeight = 32;
     }
 
     return (
       <React.Fragment>
-        {dummyDiv}
+        <div id="dummy_header_div" style={{height: dummyDivHeight}}></div>
         <div id='table_header' onScroll={this.didScroll} style={{
           width: TableRow.rowWidth(timeLables.length - 1),
           backgroundColor: 'lightblue',
